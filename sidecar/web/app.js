@@ -20,6 +20,7 @@ function showPage(name) {
   );
   if (name === 'cycles') fetchCycles();
   if (name === 'council') fetchRoles();
+  if (name === 'docs') fetchInsights();
 }
 
 document.querySelectorAll('.tab').forEach((t) =>
@@ -67,6 +68,38 @@ function renderCycles(cycles) {
 async function fetchCycles() {
   try { const res = await fetch('/api/cycles'); const c = await res.json(); renderCycles(Array.isArray(c) ? c : []); }
   catch { /* offline */ }
+}
+
+// ── Insights: training proposals + research briefs (fetched on Docs open) ──
+function renderTrainingProposals(proposals) {
+  const el = $('trainingProposals');
+  if (!el) return;
+  if (!proposals.length) { el.innerHTML = '<div class="empty">no training proposals yet</div>'; return; }
+  el.innerHTML = proposals.map((p) => `
+    <div class="docs-card">
+      <div class="docs-card-head"><span class="docs-card-role">${esc(p.role || '')}</span></div>
+      ${p.rationale ? `<div class="docs-card-rationale">${esc(p.rationale)}</div>` : ''}
+      ${p.proposed_text ? `<div class="docs-card-body">${esc(p.proposed_text)}</div>` : ''}
+    </div>`).join('');
+}
+
+function renderResearchBriefs(briefs) {
+  const el = $('researchBriefs');
+  if (!el) return;
+  if (!briefs.length) { el.innerHTML = '<div class="empty">no research briefs yet</div>'; return; }
+  el.innerHTML = briefs.map((b) => `
+    <div class="docs-card">
+      <div class="docs-card-body">${esc(typeof b === 'string' ? b : JSON.stringify(b))}</div>
+    </div>`).join('');
+}
+
+async function fetchInsights() {
+  try {
+    const res = await fetch('/api/insights');
+    const d = await res.json();
+    renderTrainingProposals(Array.isArray(d.trainingProposals) ? d.trainingProposals : []);
+    renderResearchBriefs(Array.isArray(d.researchBriefs) ? d.researchBriefs : []);
+  } catch { /* offline */ }
 }
 
 // ── Stepper ───────────────────────────────────────────────────────
@@ -136,8 +169,11 @@ function render(s) {
   if (headerSig !== lastSig.header) {
     lastSig.header = headerSig;
 
-    $('goal').textContent = s.goal ? s.goal.text : '— no goal yet —';
-    $('cycleState').textContent = s.cycleState || '—';
+    // Idle = no cycle running (null) or the cycle reached its terminal 'stop' phase.
+    // In that case the persisted goal/cycleState are stale, so show a neutral idle label.
+    const idle = !s.cycleState || s.cycleState === 'stop';
+    $('goal').textContent = idle ? '— idle · no active cycle —' : (s.goal ? s.goal.text : '— no goal yet —');
+    $('cycleState').textContent = idle ? 'idle' : s.cycleState;
 
     const usd = (s.spend.usd || 0).toFixed(4);
     $('spend').textContent = `$${usd} / $${s.spend.capCycle}  \u00b7  ${s.spend.runs} runs`;
@@ -168,11 +204,16 @@ function render(s) {
   }
 
   // org — council reporting hierarchy tree
-  const agentsSig = JSON.stringify(s.agents);
+  const agentsSig = JSON.stringify([s.agents, s.agentTotal]);
   if (agentsSig !== lastSig.agents) {
     lastSig.agents = agentsSig;
     const sub = $('agentsSub');
-    if (sub) sub.textContent = `Agents (${s.agents.length} of ${s.agentTotal ?? s.agents.length})`;
+    if (sub) {
+      const total = s.agentTotal ?? s.agents.length;
+      sub.textContent = s.agents.length < total
+        ? `current team — showing ${s.agents.length} of ${total}`
+        : `who's doing what now — ${total} agent${total === 1 ? '' : 's'}`;
+    }
     $('agents').innerHTML = s.agents.length
       ? buildOrgTree(s.agents)
       : '<div class="empty">no agents spawned yet \u2014 start a cycle</div>';

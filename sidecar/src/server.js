@@ -13,10 +13,20 @@ const webDir = path.join(sidecarDir, 'web');
 const PORT = Number(process.env.COCKPIT_PORT || 4317);
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
-export function selectVisibleAgents(agents, cap = 16) {
+// Pick the CURRENT team out of the full (often 100+) agent history so the Org panel
+// stays legible. Always keep every working agent; then top up with the most-recently
+// created non-working agents. When work is happening the long idle tail is dropped
+// (filled only up to `cap`); when nothing is working we still show just a small
+// number of the newest agents (`idleFloor`) instead of the entire roster.
+export function selectVisibleAgents(agents, cap = 12, idleFloor = 6) {
+  const byNewest = (a, b) => String(b.created_ts || '').localeCompare(String(a.created_ts || ''));
   const working = agents.filter(a => a.status === 'working');
-  const others = agents.filter(a => a.status !== 'working');
-  return [...working, ...others].slice(0, cap);
+  const others = agents.filter(a => a.status !== 'working').sort(byNewest);
+  // Reserve room for every working agent, but never show more than `cap` total and,
+  // when nothing is working, never more than `idleFloor` idle rows.
+  const fillTarget = working.length > 0 ? cap : idleFloor;
+  const fillCount = Math.max(0, Math.min(others.length, fillTarget - working.length));
+  return [...working, ...others.slice(0, fillCount)].slice(0, cap);
 }
 
 export function computeMetrics({ spendUsd, runs, ticketsTotal, ticketsDone }) {
@@ -103,9 +113,9 @@ function snapshot(db) {
   const ticketTotal = db.prepare('SELECT COUNT(*) AS total FROM ticket').get();
   const ticketDone = db.prepare("SELECT COUNT(*) AS done FROM ticket WHERE kanban_column='Done'").get();
 
-  const allAgents = db.prepare('SELECT id, role, reports_to, status, current_action, model FROM agent ORDER BY role, id').all();
+  const allAgents = db.prepare('SELECT id, role, reports_to, status, current_action, model, created_ts FROM agent ORDER BY role, id').all();
   const agentTotal = allAgents.length;
-  const agents = selectVisibleAgents(allAgents, 16);
+  const agents = selectVisibleAgents(allAgents, 12);
 
   return {
     goal,
@@ -209,6 +219,37 @@ export function startCockpit() {
         return res.end(JSON.stringify(summaries));
       } catch (e) {
         console.error('[cockpit] /api/cycles error:', e.message);
+        res.writeHead(500, { 'content-type': 'application/json' });
+        return res.end('{"error":"internal error"}');
+      }
+    }
+    if (req.method === 'GET' && url.pathname === '/api/insights') {
+      try {
+        // Training proposals: the array the training agent wrote to policy-refinements.json.
+        // Read safely — file may be missing on a fresh install or contain invalid JSON.
+        let trainingProposals = [];
+        try {
+          const raw = fs.readFileSync(path.join(paths.data, 'policy-refinements.json'), 'utf8');
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) trainingProposals = parsed;
+        } catch { /* missing or invalid — leave as [] */ }
+
+        // Research briefs: payloads of the 10 most recent research_brief events.
+        // Parse each payload defensively and expose only its .brief field.
+        let researchBriefs = [];
+        try {
+          const rows = db.prepare(
+            "SELECT payload_json FROM event WHERE type = 'research_brief' ORDER BY id DESC LIMIT 10"
+          ).all();
+          researchBriefs = rows.map((r) => {
+            try { return JSON.parse(r.payload_json || '{}').brief ?? null; } catch { return null; }
+          }).filter((b) => b != null);
+        } catch { /* table/column shape may differ — leave as [] */ }
+
+        res.writeHead(200, { 'content-type': 'application/json' });
+        return res.end(JSON.stringify({ trainingProposals, researchBriefs }));
+      } catch (e) {
+        console.error('[cockpit] /api/insights error:', e.message);
         res.writeHead(500, { 'content-type': 'application/json' });
         return res.end('{"error":"internal error"}');
       }
