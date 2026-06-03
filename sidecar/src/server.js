@@ -12,6 +12,16 @@ const webDir = path.join(sidecarDir, 'web');
 const PORT = Number(process.env.COCKPIT_PORT || 4317);
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
+export function computeMetrics({ spendUsd, runs, ticketsTotal, ticketsDone }) {
+  return {
+    spendUsd,
+    runs,
+    ticketsTotal,
+    ticketsDone,
+    costPerRun: runs > 0 ? Number((spendUsd / runs).toFixed(4)) : 0,
+  };
+}
+
 export function truncate(text, max) {
   return text.length <= max ? text : text.slice(0, max - 3) + '...';
 }
@@ -83,6 +93,9 @@ function snapshot(db) {
     consoleLines = allLines.slice(-40);
   } catch { /* table may lack payload_json column in older schemas; degrade gracefully */ }
 
+  const ticketTotal = db.prepare('SELECT COUNT(*) AS total FROM tickets').get();
+  const ticketDone = db.prepare("SELECT COUNT(*) AS done FROM tickets WHERE kanban_column='Done'").get();
+
   return {
     goal,
     killSwitch: { engaged: ks.engaged === 1, reason: ks.reason || null },
@@ -94,6 +107,7 @@ function snapshot(db) {
     approvals: db.prepare('SELECT change_id, approver_agent_id, decision, reason FROM approval ORDER BY ts DESC').all(),
     events: db.prepare('SELECT id, ts, type, agent_id FROM event ORDER BY id DESC LIMIT 60').all(),
     console: consoleLines,
+    metrics: computeMetrics({ spendUsd: sp.usd, runs: sp.runs, ticketsTotal: ticketTotal.total, ticketsDone: ticketDone.done }),
   };
 }
 
