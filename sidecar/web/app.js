@@ -165,8 +165,8 @@ function render(s) {
     renderConsole(s.console || []);
   }
 
-  // slack-style chat view
-  const chatSig = JSON.stringify(s.chat);
+  // slack-style chat view (renders from s.console, so key the signature on that)
+  const chatSig = JSON.stringify(s.console);
   if (chatSig !== lastSig.chat) {
     lastSig.chat = chatSig;
     renderChat(s.console || []);
