@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "cockpit",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--no-warnings", "sidecar/scripts/cockpit.js"],
+      "port": 4317
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 **An autonomous multi-agent software organization, with a governance layer and a visibility cockpit.**
 
-Status: **DRAFT v0.3** — headless MVP **runs**: spine + enforcement chokepoint + full council-loop cycle all green in [`sidecar/`](sidecar/) (see [P0-FINDINGS.md](P0-FINDINGS.md)).
+Status: **DRAFT v0.4** — headless MVP **+ live web cockpit** running in [`sidecar/`](sidecar/): spine, enforcement gate, council-loop cycle, and the dashboard all green (see [P0-FINDINGS.md](P0-FINDINGS.md)).
 Owner / "Chair": Carson. Last updated: 2026-06-02.
 
 ---
@@ -281,7 +281,7 @@ On by default, with concrete starting numbers (tune later via "spend per complet
 |---|---|---|
 | **P0 — Spike & de-risk** ✅ DONE | Prove the load-bearing assumptions | Sidecar `git init`s the workspace + seeds a base branch; **verify worktree spawn on Windows 11**; verify headless Agent-SDK spawn with scoped tools + hooks delivering PreToolUse/Stop to the sidecar; confirm hook payload shapes; record Tauri-vs-Electron decision as an ADR after a `tauri-plugin-pty` spike |
 | **P1 — Headless loop + brakes** ✅ DONE | The MVP ([§10](#10-the-mvp-headless-first)) | Sidecar FSM; SQLite spine; spawner + worktrees; synchronous budget + PAUSE-ALL; 4 roles; enforced gate; outcome test; goal-realign; logs-only output |
-| **P2 — Cockpit shell** | See it run & stop | Tauri shell + one WebSocket; Live Activity (org chart + "who's doing what now"); LoopControlBar (spend vs cap, PAUSE-ALL); bottom-docked terminal (follow-agent) |
+| **P2 — Cockpit shell** ✅ (web-first) | See it run & stop | Tauri shell + one WebSocket; Live Activity (org chart + "who's doing what now"); LoopControlBar (spend vs cap, PAUSE-ALL); bottom-docked terminal (follow-agent) |
 | **P3 — Boards & change mgmt UI** | Visible governance | Kanban (from tickets); Change Board with named-approver cards + one-click Chair approve/deny; streaming audit view |
 | **P4 — Comms & doc rigor** | Org talks; docs stay true | DB-backed message bus + channels + @mentions + speak-worthiness gate; Documentation/underwriter + doc-drift PreClose gate; circuit breakers |
 | **P5 — Org growth under governance** | Earn the full org | role_template + skill_registry; IT-Manager compiler path; CIO + FE/BE/DB leads + Security + Compliance + CFO + HR, each via its own justification change; cycle rollover + complexity budget |

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AgentDashboard · Cockpit</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">▦ Agent<b>Dashboard</b><span class="sub">cockpit</span></div>
+    <div class="goal"><span class="goal-lbl">GOAL</span><span id="goal">—</span></div>
+    <div class="controls">
+      <div class="stat"><span class="lbl">cycle</span><span id="cycleState" class="pill">—</span></div>
+      <div class="stat"><span class="lbl">spend</span><span id="spend" class="mono">$0.0000</span></div>
+      <button id="killBtn" class="btn btn-danger">PAUSE ALL</button>
+      <span id="conn" class="conn off" title="live connection"></span>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="panel">
+      <h2>Org <span class="h2sub">who's doing what now</span></h2>
+      <div id="agents" class="agents"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Kanban <span class="h2sub">tickets this cycle</span></h2>
+      <div id="kanban" class="kanban"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Change board <span class="h2sub">approvals &amp; merges</span></h2>
+      <div id="changes" class="changes"></div>
+    </section>
+
+    <section class="panel feed">
+      <h2>Activity <span class="h2sub">event stream</span></h2>
+      <div id="feed" class="feed-list"></div>
+    </section>
+  </main>
+
+  <div id="pausedBanner" class="paused-banner hidden">⏸ PAUSED — the loop will halt before its next model call</div>
+  <script src="/app.js"></script>
+</body>
+</html>

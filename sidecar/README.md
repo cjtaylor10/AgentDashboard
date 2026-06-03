@@ -25,6 +25,7 @@ scripts/
 npm run prove           # spine: spawn 1 worker -> events into SQLite -> read back
 npm run prove:enforce   # chokepoint: work reaches master ONLY via an authorized approval
 npm run cycle           # full council cycle: goal -> plan -> build -> test -> audit -> gated merge
+npm run cockpit         # live dashboard at http://localhost:4317 (watch the org work; PAUSE-ALL)
 npm run reset           # wipe runtime state (workspace, worktrees, db) for a clean slate
 ```
 
@@ -41,5 +42,8 @@ Each spawns one real (small, budget-capped) model call. Override the worker bina
   → AUDIT → CHANGE_APPROVAL → GOAL_REALIGN by 4 role agents (Planner/Driver, Developer, outcome-based
   Tester, independent Auditor), with budget + kill-switch checks before every model call.
 
-Next (P2): the Tauri cockpit + embedded terminal as read models over this same spine (live org chart,
-kanban, change board, streaming audit, PAUSE-ALL). Then cycle-to-cycle rollover + the remaining roles.
+- the **cockpit (web-first)** — `run-cycle` aside, `npm run cockpit` serves a live dashboard at
+  http://localhost:4317 (org chart, kanban, change board, activity stream, spend, PAUSE-ALL) as read
+  models over the SQLite spine via SSE.
+
+Next: embedded xterm.js terminal + optional Tauri desktop wrapper; cycle-to-cycle rollover; more org roles.
