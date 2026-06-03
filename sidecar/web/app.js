@@ -196,17 +196,26 @@ function render(s) {
     $('pausedBanner').classList.toggle('hidden', !killed);
   }
 
-  // stepper
+  // stepper + hero phase
   const stepperSig = JSON.stringify(s.cycleState);
   if (stepperSig !== lastSig.stepper) {
     lastSig.stepper = stepperSig;
     renderStepper(s.cycleState);
+    const heroPhase = $('hero-phase');
+    if (heroPhase) {
+      const idle = !s.cycleState || s.cycleState === 'stop';
+      heroPhase.textContent = idle ? '\u2014' : s.cycleState;
+    }
   }
 
-  // org — council reporting hierarchy tree
+  // org — council reporting hierarchy tree + hero working count
   const agentsSig = JSON.stringify([s.agents, s.agentTotal]);
   if (agentsSig !== lastSig.agents) {
     lastSig.agents = agentsSig;
+    const heroWorking = $('hero-working');
+    if (heroWorking) {
+      heroWorking.textContent = String(s.agents.filter((a) => a.status === 'working').length);
+    }
     const sub = $('agentsSub');
     if (sub) {
       const total = s.agentTotal ?? s.agents.length;
