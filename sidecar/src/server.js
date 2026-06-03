@@ -164,6 +164,53 @@ export function startCockpit() {
       });
       return;
     }
+    if (req.method === 'GET' && url.pathname === '/api/cycles') {
+      try {
+        const rows = db.prepare(
+          "SELECT id, ts, type, payload_json FROM event WHERE type LIKE 'cycle.%' ORDER BY id ASC"
+        ).all();
+
+        // Group events by cycleId (present in payload of every runCycle event)
+        const cycleMap = new Map(); // cycleId string -> { firstTs, lastTs, goalId, lastState }
+        for (const row of rows) {
+          let payload = null;
+          try { payload = row.payload_json ? JSON.parse(row.payload_json) : null; } catch { /* skip */ }
+          const cid = payload?.cycleId;
+          if (!cid) continue; // autonomous_plan / autonomous_goal have no cycleId
+          if (!cycleMap.has(cid)) cycleMap.set(cid, { firstTs: row.ts, lastTs: row.ts, goalId: null, lastState: null });
+          const entry = cycleMap.get(cid);
+          entry.lastTs = row.ts;
+          entry.lastState = row.type.replace('cycle.', '');
+          if (row.type === 'cycle.goal_intake' && payload.goalId) entry.goalId = payload.goalId;
+        }
+
+        let seq = 0;
+        const summaries = [];
+        for (const [, entry] of cycleMap) {
+          seq++;
+          let goal = '';
+          if (entry.goalId) {
+            const gr = db.prepare('SELECT text FROM goal WHERE id = ?').get(entry.goalId);
+            if (gr) goal = gr.text;
+          }
+          const startMs = new Date(entry.firstTs).getTime();
+          const endMs = new Date(entry.lastTs).getTime();
+          summaries.push({
+            cycleId: seq,
+            goal,
+            startedAt: entry.firstTs,
+            terminalState: entry.lastState ?? 'unknown',
+            durationSecs: Number(((endMs - startMs) / 1000).toFixed(2)),
+          });
+        }
+
+        res.writeHead(200, { 'content-type': 'application/json' });
+        return res.end(JSON.stringify(summaries));
+      } catch (e) {
+        res.writeHead(500, { 'content-type': 'application/json' });
+        return res.end(JSON.stringify({ error: String(e.message) }));
+      }
+    }
     if (url.pathname === '/api/state') {
       res.writeHead(200, { 'content-type': 'application/json' }); return res.end(JSON.stringify(snapshot(db)));
     }
