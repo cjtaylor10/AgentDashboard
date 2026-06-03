@@ -13,10 +13,19 @@ export function isRepo(dir) {
   catch { return false; }
 }
 
+// True only if `dir` is the ROOT of its own git repo — not merely sitting inside a parent repo.
+// The workspace lives inside the harness repo, and git discovery walks UP to find a .git, so a plain
+// --is-inside-work-tree check would falsely report the workspace as already initialized (and the agent
+// would branch off the harness's own source). --show-toplevel returns the actual repo root to compare.
+export function isRepoRoot(dir) {
+  try { return path.resolve(git(dir, ['rev-parse', '--show-toplevel'])) === path.resolve(dir); }
+  catch { return false; }
+}
+
 // Initialize the product repo with a seed commit so worktrees can branch off it.
 export function ensureRepo(dir, { name = 'harness', email = 'harness@local' } = {}) {
   fs.mkdirSync(dir, { recursive: true });
-  if (isRepo(dir)) return false;
+  if (isRepoRoot(dir)) return false;
   git(dir, ['init', '-q']);
   git(dir, ['config', 'user.name', name]);
   git(dir, ['config', 'user.email', email]);
