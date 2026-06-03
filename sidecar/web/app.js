@@ -62,6 +62,8 @@ function render(s) {
 
   // terminal console — agent output stream
   renderConsole(s.console || []);
+  // slack-style chat view of the same output
+  renderChat(s.console || []);
 }
 
 function renderConsole(lines) {
@@ -82,6 +84,53 @@ function renderConsole(lines) {
     return `<span class="term-line"><span class="term-body">${esc(raw)}</span></span>`;
   }).join('\n');
   // Auto-scroll to bottom so newest output is always visible.
+  el.scrollTop = el.scrollHeight;
+}
+
+// ── Chat panel ──────────────────────────────────────────────────────
+const CHAT_ROLE_SLOT = {};
+let _chatNextSlot = 0;
+const CHAT_SLOT_COUNT = 5;
+
+function chatSlot(role) {
+  const key = (role || 'system').toLowerCase();
+  if (!(key in CHAT_ROLE_SLOT)) { CHAT_ROLE_SLOT[key] = _chatNextSlot++ % CHAT_SLOT_COUNT; }
+  return CHAT_ROLE_SLOT[key];
+}
+
+function renderChat(lines) {
+  const el = $('chat');
+  if (!el) return;
+
+  const LP = /^(\d{2}:\d{2}:\d{2}) (?:\[([^\]]+)\] )?(.*)$/;
+  let html = '';
+  let prevRole = null;
+
+  for (const raw of lines) {
+    const m = LP.exec(raw);
+    if (!m) continue;
+    const ts    = m[1];
+    const agent = m[2] || 'system';
+    const body  = m[3] || '';
+    const role  = agent.split('-')[0] || 'system';
+    const slot  = chatSlot(role);
+
+    if (role !== prevRole) {
+      html += `<div class="chat-group-label">`
+            + `<span class="chat-role">${esc(role)}</span>`
+            + `<span class="chat-agent-id">${esc(agent)}</span>`
+            + `</div>`;
+      prevRole = role;
+    }
+
+    html += `<div class="chat-bubble chat-r${slot}">`
+          + `<span class="chat-body">${esc(body)}</span>`
+          + `<span class="chat-ts">${esc(ts)}</span>`
+          + `</div>`;
+  }
+
+  if (!html) html = '<div class="chat-empty">no agent messages yet</div>';
+  el.innerHTML = html;
   el.scrollTop = el.scrollHeight;
 }
 
