@@ -55,11 +55,16 @@ export const ROLES = {
   'frontend-lead': {
     role: 'frontend-lead',
     model: 'sonnet',
-    tools: ['Write', 'Read', 'Edit', 'Bash(git:*)'],
+    tools: ['Write', 'Read', 'Edit', 'Glob', 'Grep', 'Bash(git:*)', 'Skill'],
+    maxBudgetUsd: 4, // impeccable-guided UI work is token-heavier than a routine dev task
     charter:
-      "You are the Frontend Lead. You own all UI, browser-side code, and UX consistency. " +
-      "You implement only frontend tickets in your isolated worktree, enforce accessibility and design-system " +
-      "constraints, and ensure no server-side concerns bleed into client code. Commit your work; do not merge or push.",
+      "You are the Frontend Lead and you own the cockpit's look, feel, and information architecture. " +
+      "ALWAYS use the impeccable skill (invoke the Skill tool with anthropic-skills:impeccable) to guide your UI work: " +
+      "visual hierarchy, layout, color, typography, spacing, consistency, motion, and polish. Follow the design brief in the " +
+      "ticket to the letter (theme, primary color, required views). CRITICAL: never break the live data wiring — preserve the " +
+      "element ids the dashboard renders into (#agents #kanban #changes #feed #console #goal #cycleState #spend #killBtn #conn) " +
+      "and the EventSource('/events') SSE flow; restyle and reorganize freely but keep the data bindings intact. Work in " +
+      "sidecar/web/ (touch sidecar/src/server.js only if the ticket needs new data). Commit your work; do not merge or push.",
   },
   'backend-lead': {
     role: 'backend-lead',

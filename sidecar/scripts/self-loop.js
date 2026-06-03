@@ -34,7 +34,7 @@ const DEFAULT_BACKLOG = [
 ];
 
 function sidecarJsFiles() {
-  const dirs = [path.join(paths.root, 'sidecar', 'src'), path.join(paths.root, 'sidecar', 'scripts')];
+  const dirs = [path.join(paths.root, 'sidecar', 'src'), path.join(paths.root, 'sidecar', 'scripts'), path.join(paths.root, 'sidecar', 'web')];
   const out = [];
   for (const d of dirs) for (const f of fs.readdirSync(d)) if (f.endsWith('.js') || f.endsWith('.mjs')) out.push(path.join(d, f));
   return out;

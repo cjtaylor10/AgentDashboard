@@ -32,6 +32,13 @@ function jsonSuffix(shape) {
   return "\n\nEnd your message with ONLY a fenced json block (nothing after it):\n```json\n" + shape + "\n```";
 }
 
+// Route a ticket to the right specialist by its domain; fall back to the generalist developer.
+function pickDevRole(domain) {
+  const map = { frontend: 'frontend-lead', backend: 'backend-lead', database: 'database-lead' };
+  const key = map[(domain || '').toLowerCase()];
+  return key && ROLES[key] ? key : 'developer';
+}
+
 // --- synchronous brakes, checked before every model call ---
 function assertCanSpend(db) {
   if (isKilled(db)) throw new Error('global kill switch is engaged — loop halted');
@@ -46,7 +53,7 @@ async function runRole(db, { roleKey, agentId, cwd, prompt, settingsPath, cycleI
   const startedTs = nowIso();
   const res = await spawnWorker({
     cwd, prompt, charter: role.charter, model: role.model, allowedTools: role.tools,
-    maxBudgetUsd: BUDGETS.usdPerRun, settingsPath,
+    maxBudgetUsd: role.maxBudgetUsd ?? BUDGETS.usdPerRun, settingsPath,
     onEvent: (ev) => insertEvent(db, { type: 'worker.' + ev.type, agentId, sessionId: ev.session_id ?? null, payload: ev }),
   });
   recordRun(db, { id: randomUUID(), cycleId, agentId, sessionId: res.result?.session_id ?? null, usd: res.result?.total_cost_usd ?? 0, startedTs, endedTs: nowIso() });
@@ -81,8 +88,8 @@ export async function runCycle(db, { goalText, targetRepo = paths.workspace, wor
   const plan = await runRole(db, {
     roleKey: 'planner-driver', agentId: planner, cwd: paths.workspace, settingsPath, cycleId,
     prompt: "The Chair's goal:\n" + goalText +
-      "\n\nDecompose this into the SMALLEST set of tickets that fully satisfies it — ideally ONE ticket for a goal this size. Do not invent extra work. Each ticket needs concrete, machine-checkable done_criteria." +
-      jsonSuffix('{"rationale":"...","tickets":[{"subject":"...","description":"...","done_criteria":"..."}]}'),
+      "\n\nDecompose this into the SMALLEST set of tickets that fully satisfies it — ideally ONE ticket for a goal this size. Do not invent extra work. Each ticket needs concrete, machine-checkable done_criteria, and a \"domain\" of frontend|backend|database|general so the right specialist implements it." +
+      jsonSuffix('{"rationale":"...","tickets":[{"subject":"...","description":"...","domain":"frontend|backend|database|general","done_criteria":"..."}]}'),
   });
   const tickets = (plan.json?.tickets ?? []).slice(0, 1); // MVP: take the first ticket through the full cycle
   if (!tickets.length) { at('aborted', { reason: 'planner produced no tickets' }); return base; }
@@ -95,16 +102,17 @@ export async function runCycle(db, { goalText, targetRepo = paths.workspace, wor
   at('ticket', { ticketId, subject: t.subject });
   base.ticketId = ticketId;
 
-  // ASSIGN — spawn a developer on a fresh, isolated worktree
+  // ASSIGN — spawn the right specialist (by ticket domain) on a fresh, isolated worktree
+  const devRoleKey = pickDevRole(t.domain);
   const devId = 'dev-' + randomUUID().slice(0, 8);
   const wt = createWorktree(targetRepo, worktreesDir, devId);
-  upsertAgent(db, { id: devId, role: 'developer', reports_to: 'planner-driver', parent_agent_id: planner, status: 'working', model: ROLES.developer.model, worktree_path: wt.path });
+  upsertAgent(db, { id: devId, role: devRoleKey, reports_to: 'planner-driver', parent_agent_id: planner, status: 'working', model: ROLES[devRoleKey].model, worktree_path: wt.path });
   db.prepare("UPDATE ticket SET status='in_progress', owner=?, kanban_column='In Progress' WHERE id=?").run(devId, ticketId);
-  at('assign', { ticketId, devId, branch: wt.branch });
+  at('assign', { ticketId, devId, role: devRoleKey, branch: wt.branch });
 
   // DEV — build + commit on the worktree branch
   const dev = await runRole(db, {
-    roleKey: 'developer', agentId: devId, cwd: wt.path, settingsPath, cycleId,
+    roleKey: devRoleKey, agentId: devId, cwd: wt.path, settingsPath, cycleId,
     prompt: "Implement this ticket in the current directory (your isolated git worktree):\n\nSUBJECT: " + (t.subject ?? '') +
       "\nDETAILS: " + (t.description ?? '') + "\nDONE WHEN: " + (t.done_criteria ?? '') +
       "\n\nWrite the necessary files, then stage and commit: git add -A  then  git commit -m \"feat: <subject>\". Do NOT merge or push." +
