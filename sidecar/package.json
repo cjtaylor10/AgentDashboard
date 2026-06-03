@@ -14,6 +14,7 @@
     "self-cycle": "node --no-warnings scripts/self-cycle.js",
     "self-loop": "node --no-warnings scripts/self-loop.js",
     "add-idea": "node --no-warnings scripts/add-idea.js",
+    "autonomous": "node --no-warnings scripts/autonomous-cycle.js",
     "cockpit": "node --no-warnings scripts/cockpit.js",
     "reset": "node --no-warnings scripts/reset.js"
   }
