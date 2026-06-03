@@ -175,6 +175,7 @@ function render(s) {
     $('agents').innerHTML = s.agents.length
       ? buildOrgTree(s.agents)
       : '<div class="empty">no agents spawned yet \u2014 start a cycle</div>';
+    renderCouncil(s);
   }
 
   // kanban (hide always-empty columns to keep it tight)
@@ -313,6 +314,36 @@ function renderChat(lines) {
   if (!html) html = '<div class="chat-empty">no agent messages yet</div>';
   el.innerHTML = html;
   el.scrollTop = el.scrollHeight;
+}
+
+// ── Council ───────────────────────────────────────────────────────
+function renderCouncil(snapshot) {
+  const el = $('council-cards');
+  if (!el) return;
+  const agents = Array.isArray(snapshot && snapshot.agents) ? snapshot.agents : [];
+
+  // one entry per unique role (first agent seen wins)
+  const seen = new Set();
+  const roles = [];
+  for (const a of agents) {
+    const role = (a.role || '').trim();
+    if (role && !seen.has(role)) { seen.add(role); roles.push(a); }
+  }
+
+  if (!roles.length) {
+    el.innerHTML = '<div class="council-empty">No agents active \u2014 start a cycle to populate the council.</div>';
+    return;
+  }
+
+  el.innerHTML = roles.map((a) => {
+    const color = STATUS_COLOR[a.status] || '#9ca3af';
+    return `<div class="council-role">
+      <div class="council-role-body">
+        <div class="council-role-name">${esc(a.role)}</div>
+      </div>
+      <span class="council-status-badge" style="background:${color}">${esc(a.status || 'unknown')}</span>
+    </div>`;
+  }).join('');
 }
 
 // ── Live stream ───────────────────────────────────────────────────
