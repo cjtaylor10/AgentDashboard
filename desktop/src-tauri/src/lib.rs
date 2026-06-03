@@ -102,7 +102,16 @@ fn is_sidecar_dir(dir: &Path) -> bool {
 /// Spawn `node --no-warnings scripts/cockpit.js` with cwd = the sidecar folder,
 /// and stash the child handle in managed state so we can kill it on exit.
 fn start_cockpit(app: &tauri::AppHandle) {
-    let sidecar_dir = match resolve_sidecar_dir() {
+    // Prefer the sidecar bundled as an app resource (resource_dir/sidecar, present in a
+    // packaged install); fall back to dev-tree probing for `cargo tauri dev`.
+    let sidecar_dir = app
+        .path()
+        .resource_dir()
+        .ok()
+        .map(|r| r.join("sidecar"))
+        .filter(|p| is_sidecar_dir(p))
+        .or_else(resolve_sidecar_dir);
+    let sidecar_dir = match sidecar_dir {
         Some(dir) => dir,
         None => {
             eprintln!(
@@ -113,11 +122,19 @@ fn start_cockpit(app: &tauri::AppHandle) {
         }
     };
 
+    // The packaged app's resources are read-only, so the cockpit must write its SQLite db
+    // to a writable per-user location, passed via AGENTDASH_DATA_DIR (read by config.js).
+    let data_dir = app.path().app_data_dir().ok().map(|d| d.join("data"));
+
     let shell = app.shell();
-    let command = shell
+    let mut command = shell
         .command("node")
         .args(["--no-warnings", "scripts/cockpit.js"])
         .current_dir(&sidecar_dir);
+    if let Some(dd) = &data_dir {
+        let _ = std::fs::create_dir_all(dd);
+        command = command.env("AGENTDASH_DATA_DIR", dd.to_string_lossy().to_string());
+    }
 
     match command.spawn() {
         Ok((mut rx, child)) => {

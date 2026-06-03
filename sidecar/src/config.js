@@ -12,12 +12,17 @@ const srcDir = path.dirname(fileURLToPath(import.meta.url));
 export const sidecarDir = path.resolve(srcDir, '..');
 export const rootDir = path.resolve(sidecarDir, '..');
 
+// data/ holds runtime state (SQLite db, worker settings). When the harness runs from a
+// READ-ONLY app bundle (the packaged desktop app), the shell passes a writable location
+// via $AGENTDASH_DATA_DIR; in dev it stays under sidecar/data as before.
+const dataDir = process.env.AGENTDASH_DATA_DIR || path.join(sidecarDir, 'data');
+
 export const paths = {
   root: rootDir,
   workspace: path.join(rootDir, 'workspace'),   // the org's product repo (its own git repo)
   worktrees: path.join(rootDir, '.worktrees'),  // per-agent worktrees (ignored by the harness repo)
-  data: path.join(sidecarDir, 'data'),
-  db: path.join(sidecarDir, 'data', 'harness.db'),
+  data: dataDir,
+  db: path.join(dataDir, 'harness.db'),
 };
 
 // The headless worker binary. The original Windows host had it at a fixed path, but for
