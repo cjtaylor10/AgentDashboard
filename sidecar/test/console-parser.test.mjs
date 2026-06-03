@@ -49,9 +49,9 @@ const m = computeMetrics({ spendUsd: 1, runs: 4, ticketsTotal: 2, ticketsDone: 1
 assert('computeMetrics costPerRun === 0.25', m.costPerRun === 0.25);
 assert('computeMetrics ticketsDone === 1', m.ticketsDone === 1);
 
-// selectVisibleAgents: caps at 16 by default
+// selectVisibleAgents: with nothing working, caps idle agents to the idle floor (6)
 const capped = selectVisibleAgents(Array.from({ length: 20 }, () => ({ status: 'idle' })));
-assert('selectVisibleAgents caps 20 idle agents to 16', capped.length === 16);
+assert('selectVisibleAgents caps 20 idle agents to the idle floor (6)', capped.length === 6);
 
 // selectVisibleAgents: working agents first, respects custom cap
 const mixed = selectVisibleAgents(
