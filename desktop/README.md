@@ -1,8 +1,8 @@
 # AgentDashboard — Desktop Wrapper
 
-> **SCAFFOLD ONLY** — this directory contains an unbuilt Tauri 2 skeleton.
-> No native build has been run; no binary has been produced.
-> A human must complete the Rust/Tauri toolchain setup and verify the build.
+> **BUILT & RUNNING** — `cargo build` (in `src-tauri/`) produces `target/debug/agent-dashboard.exe`,
+> verified to launch a native window that loads the live cockpit. Icons are generated in `icons/`.
+> Start the cockpit first (`npm run cockpit` in `sidecar/`), then run the `.exe` or `cargo tauri dev`.
 
 This is a Tauri 2 desktop wrapper that points a native window at the sidecar
 cockpit web UI (`http://localhost:4317`). All application logic lives in the
@@ -79,6 +79,6 @@ desktop/
 - The cockpit port is hardcoded to `4317` in both `sidecar/src/server.js` and
   `tauri.conf.json` (`build.frontendDist`). If you change the port via
   `COCKPIT_PORT`, update `tauri.conf.json` accordingly.
-- This scaffold was generated without running `cargo`/`tauri`; the first
-  `cargo tauri dev` will fetch and compile all Rust dependencies from crates.io.
-  Expect a multi-minute cold build.
+- The first build fetches + compiles the full Rust dependency tree from crates.io
+  (a multi-minute cold build); subsequent builds are fast (~25s). Build artifacts
+  live in `target/` (git-ignored).

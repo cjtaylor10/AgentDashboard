@@ -7,6 +7,10 @@
 *.db-wal
 *.db-shm
 
+# Rust / Tauri build artifacts
+/desktop/src-tauri/target/
+target/
+
 # OS / editor
 Thumbs.db
 .DS_Store

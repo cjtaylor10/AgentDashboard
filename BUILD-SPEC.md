@@ -2,7 +2,7 @@
 
 **An autonomous multi-agent software organization, with a governance layer and a visibility cockpit.**
 
-Status: **DRAFT v0.6** — the system now **develops itself** (`npm run self-cycle` / `self-loop`) and has redesigned its own cockpit: a cohesive **steel-blue** UI (Org · Kanban · Changes · Activity · Console · **agent Chat**), domain-routed roles (frontend-lead builds via the **impeccable** skill), a Security review step, and a Tauri scaffold in [`desktop/`](desktop/). See [P0-FINDINGS.md](P0-FINDINGS.md).
+Status: **DRAFT v0.6** — the system now **develops itself** (`npm run self-cycle` / `self-loop`) and has redesigned its own cockpit: a cohesive **steel-blue** UI (Org · Kanban · Changes · Activity · Console · **agent Chat**), domain-routed roles (frontend-lead builds via the **impeccable** skill), a Security review step, and a **built native desktop app** in [`desktop/`](desktop/) (Tauri 2 — `agent-dashboard.exe` wraps the cockpit in a window). See [P0-FINDINGS.md](P0-FINDINGS.md).
 Owner / "Chair": Carson. Last updated: 2026-06-02.
 
 ---
