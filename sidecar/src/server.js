@@ -16,6 +16,12 @@ export function truncate(text, max) {
   return text.length <= max ? text : text.slice(0, max - 3) + '...';
 }
 
+export function shortId(id) {
+  if (id == null) return '';
+  const i = id.lastIndexOf('-');
+  return i === -1 ? id : id.slice(i + 1);
+}
+
 export function workerEventToLine(ev) {
   // Reduce a worker.* event row to a short human-readable text line.
   // Columns available: id, ts, type, agent_id, payload_json
