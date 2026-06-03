@@ -5,7 +5,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { openDb } from './db.js';
+import { openDb, addIdea } from './db.js';
 import { BUDGETS, sidecarDir, paths } from './config.js';
 
 const webDir = path.join(sidecarDir, 'web');
@@ -119,6 +119,7 @@ function snapshot(db) {
     events: db.prepare('SELECT id, ts, type, agent_id FROM event ORDER BY id DESC LIMIT 60').all(),
     console: consoleLines,
     metrics: computeMetrics({ spendUsd: sp.usd, runs: sp.runs, ticketsTotal: ticketTotal.total, ticketsDone: ticketDone.done }),
+    ideas: db.prepare('SELECT id, text, author, status, council_note, created_ts FROM idea ORDER BY created_ts DESC LIMIT 50').all(),
   };
 }
 
@@ -149,6 +150,19 @@ export function startCockpit() {
     if (req.method === 'POST' && url.pathname === '/api/resume') {
       db.prepare("UPDATE kill_switch SET engaged = 0, reason = NULL, ts = datetime('now') WHERE id = 1").run();
       res.writeHead(200, { 'content-type': 'application/json' }); return res.end('{"ok":true}');
+    }
+    if (req.method === 'POST' && url.pathname === '/api/ideas') {
+      let body = '';
+      req.on('data', (c) => { body += c; if (body.length > 20000) req.destroy(); });
+      req.on('end', () => {
+        try {
+          const text = String(JSON.parse(body || '{}').text || '').trim();
+          if (!text) { res.writeHead(400, { 'content-type': 'application/json' }); return res.end('{"ok":false,"error":"empty"}'); }
+          const id = addIdea(db, { text: text.slice(0, 2000) });
+          res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ ok: true, id }));
+        } catch { res.writeHead(400, { 'content-type': 'application/json' }); res.end('{"ok":false}'); }
+      });
+      return;
     }
     if (url.pathname === '/api/state') {
       res.writeHead(200, { 'content-type': 'application/json' }); return res.end(JSON.stringify(snapshot(db)));

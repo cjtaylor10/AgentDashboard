@@ -4,6 +4,7 @@
 // the other tables are thin projections written in the same transaction. No event-sourcing replay,
 // no crypto chain — deliberately lean for v1.
 import { DatabaseSync } from 'node:sqlite';
+import { randomUUID } from 'node:crypto';
 import { paths, ensureDirs } from './config.js';
 
 const SCHEMA = `
@@ -102,6 +103,16 @@ CREATE TABLE IF NOT EXISTS kill_switch (
   ts      TEXT
 );
 INSERT OR IGNORE INTO kill_switch (id, engaged) VALUES (1, 0);
+
+CREATE TABLE IF NOT EXISTS idea (
+  id           TEXT PRIMARY KEY,
+  text         TEXT NOT NULL,
+  author       TEXT NOT NULL DEFAULT 'chair',
+  status       TEXT NOT NULL DEFAULT 'new',   -- new | considering | accepted | rejected | done
+  council_note TEXT,                          -- the council's decision / push-back / refinement
+  created_ts   TEXT NOT NULL,
+  updated_ts   TEXT
+);
 `;
 
 export function nowIso() {
@@ -151,4 +162,22 @@ export function recordRun(db, r) {
 
 export function isKilled(db) {
   return db.prepare('SELECT engaged FROM kill_switch WHERE id = 1').get()?.engaged === 1;
+}
+
+// --- ideas inbox (the Chair submits ideas; the council pulls from here when it has no other work) ---
+export function addIdea(db, { text, author = 'chair' }) {
+  const id = 'idea-' + randomUUID().slice(0, 8);
+  db.prepare("INSERT INTO idea (id, text, author, status, created_ts) VALUES (?,?,?, 'new', ?)").run(id, text, author, nowIso());
+  return id;
+}
+
+export function listIdeas(db, status = null) {
+  return status
+    ? db.prepare('SELECT * FROM idea WHERE status = ? ORDER BY created_ts DESC').all(status)
+    : db.prepare('SELECT * FROM idea ORDER BY created_ts DESC').all();
+}
+
+export function updateIdea(db, id, { status, councilNote = null }) {
+  db.prepare('UPDATE idea SET status = ?, council_note = COALESCE(?, council_note), updated_ts = ? WHERE id = ?')
+    .run(status, councilNote, nowIso(), id);
 }
