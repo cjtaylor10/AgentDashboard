@@ -36,7 +36,7 @@ function render(s) {
     if (!items.length && !['Todo', 'In Progress', 'In Review', 'Done'].includes(col)) return '';
     return `<div class="kcol">
       <div class="kcol-h">${col}<span>${items.length}</span></div>
-      ${items.map((t) => `<div class="card ${col === 'Done' ? 'done' : ''}">${esc(t.subject)}<div class="card-sub">${esc(t.status)}</div></div>`).join('')}
+      ${items.length ? items.map((t) => `<div class="card ${col === 'Done' ? 'done' : ''}">${esc(t.subject)}<div class="card-sub">${esc(t.status)}</div></div>`).join('') : '<div class="kcol-empty">—</div>'}
     </div>`;
   }).join('');
 
@@ -111,12 +111,18 @@ function renderChat(lines) {
     if (!m) continue;
     const ts    = m[1];
     const agent = m[2] || 'system';
-    const body  = m[3] || '';
-    const role  = agent.split('-')[0] || 'system';
+    const body  = (m[3] || '').trim();
+    const role  = (agent.split('-')[0] || 'system').toLowerCase();
+
+    // Filter: drop system noise, rate-limit events, and empty user turns
+    if (role === 'system') continue;
+    if (role === 'rate_limit_event' || body.includes('rate_limit_event')) continue;
+    if (role === 'user' && !body) continue;
+
     const slot  = chatSlot(role);
 
     if (role !== prevRole) {
-      html += `<div class="chat-group-label">`
+      html += `<div class="chat-group-label chat-label-r${slot}">`
             + `<span class="chat-role">${esc(role)}</span>`
             + `<span class="chat-agent-id">${esc(agent)}</span>`
             + `</div>`;

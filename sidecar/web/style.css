@@ -51,6 +51,8 @@
   --sp-4: 16px;
   --sp-5: 20px;
   --sp-6: 24px;
+  --sp-7: 28px;
+  --sp-8: 32px;
 
   /* ── Motion ── */
   --ease: cubic-bezier(.25,.46,.45,.94);
@@ -285,6 +287,10 @@ body {
   color: var(--text-faint);
   font-style: italic;
   font-size: 12px;
+  text-align: center;
+  padding: var(--sp-5) var(--sp-4);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--r-md);
 }
 
 /* ── Agents ──────────────────────────────────────────────────────── */
@@ -390,7 +396,7 @@ body {
   color: var(--text);
   transition: border-color 150ms var(--ease);
 }
-.card:hover { border-color: var(--border); }
+.card:hover { border-left-color: var(--primary-light); border-color: var(--border); }
 .card.done {
   border-left-color: var(--green);
   opacity: .70;
@@ -399,6 +405,14 @@ body {
   font-size: 10px;
   color: var(--text-faint);
   margin-top: var(--sp-1);
+}
+
+.kcol-empty {
+  color: var(--text-faint);
+  font-size: 11px;
+  font-style: italic;
+  text-align: center;
+  padding: var(--sp-4) 0;
 }
 
 /* ── Change board ────────────────────────────────────────────────── */
@@ -569,6 +583,12 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   text-transform: capitalize;
   color: var(--primary);
 }
+/* Per-slot label accent colors matching the bubbles */
+.chat-label-r0 .chat-role { color: #4682b4; }
+.chat-label-r1 .chat-role { color: #56b6e8; }
+.chat-label-r2 .chat-role { color: #e3a84a; }
+.chat-label-r3 .chat-role { color: #9f7fe5; }
+.chat-label-r4 .chat-role { color: #3fb950; }
 
 .chat-agent-id {
   font-family: ui-monospace, monospace;
@@ -576,7 +596,7 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   color: var(--text-faint);
 }
 
-/* Slack-style bubble — role slot colors derived solely from the five design-system custom properties */
+/* Slack-style bubbles — five role slots, each with a harmonious steel-blue complement */
 .chat-bubble {
   display: flex;
   justify-content: space-between;
@@ -587,13 +607,15 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   border: 1px solid var(--border-subtle);
   max-width: 88%;
   font-size: 12px;
+  transition: border-color 150ms var(--ease), background 150ms var(--ease);
 }
+.chat-bubble:hover { border-color: var(--border); }
 
-.chat-r0 { background: color-mix(in srgb, var(--primary) 18%, var(--bg)); border-left: 3px solid var(--primary); }
-.chat-r1 { background: color-mix(in srgb, var(--text)    7%,  var(--bg)); border-left: 3px solid var(--text); }
-.chat-r2 { background: color-mix(in srgb, var(--border)  55%, var(--bg)); border-left: 3px solid var(--border); }
-.chat-r3 { background: color-mix(in srgb, var(--surface) 65%, var(--primary) 18%); border-left: 3px solid var(--surface); }
-.chat-r4 { background: color-mix(in srgb, var(--primary) 9%,  var(--surface)); border-left: 3px solid var(--text); }
+/* r0 chair   — steel blue   */ .chat-r0 { background: rgba(70,130,180,.13); border-left: 3px solid #4682b4; }
+/* r1 dev     — sky          */ .chat-r1 { background: rgba(86,182,232,.10); border-left: 3px solid #56b6e8; }
+/* r2 auditor — amber        */ .chat-r2 { background: rgba(227,168,74,.10); border-left: 3px solid #e3a84a; }
+/* r3 pm      — violet       */ .chat-r3 { background: rgba(159,127,229,.10); border-left: 3px solid #9f7fe5; }
+/* r4 misc    — green        */ .chat-r4 { background: rgba(63,185,80,.10);  border-left: 3px solid #3fb950; }
 
 .chat-body {
   color: var(--text);
@@ -615,5 +637,8 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   color: var(--text-faint);
   font-style: italic;
   font-size: 12px;
-  padding: var(--sp-2);
+  text-align: center;
+  padding: var(--sp-5) var(--sp-4);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--r-md);
 }
