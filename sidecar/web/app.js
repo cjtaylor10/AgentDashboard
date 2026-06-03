@@ -8,6 +8,49 @@ const PHASES = ['goal_intake','plan','ticket','assign','dev_done','test','audit'
 
 const lastSig = {};
 
+// ── Page routing ──────────────────────────────────────────────────
+let activePage = 'overview';
+
+function showPage(name) {
+  activePage = name;
+  const app = $('app');
+  if (app) app.dataset.page = name;
+  document.querySelectorAll('.tab').forEach((t) =>
+    t.classList.toggle('tab--active', t.dataset.tab === name)
+  );
+}
+
+document.querySelectorAll('.tab').forEach((t) =>
+  t.addEventListener('click', () => showPage(t.dataset.tab))
+);
+
+// ── Ideas ─────────────────────────────────────────────────────────
+const IDEA_STATES = {
+  new:         { cls: 'idea-state-new',         label: 'New' },
+  considering: { cls: 'idea-state-considering', label: 'Considering' },
+  accepted:    { cls: 'idea-state-accepted',    label: 'Accepted' },
+  rejected:    { cls: 'idea-state-rejected',    label: 'Rejected' },
+  done:        { cls: 'idea-state-done',        label: 'Done' },
+};
+
+function renderIdeas(ideas) {
+  const el = $('ideasList');
+  if (!el) return;
+  if (!ideas.length) {
+    el.innerHTML = '<div class="empty">no ideas yet \u2014 submit one above</div>';
+    return;
+  }
+  el.innerHTML = ideas.map((idea) => {
+    const st = IDEA_STATES[idea.status] || IDEA_STATES.new;
+    return `<div class="idea-item">
+      <div class="idea-head"><span class="idea-badge ${st.cls}">${st.label}</span></div>
+      <div class="idea-text">${esc(idea.text)}</div>
+      ${idea.council_note ? `<div class="idea-note">${esc(idea.council_note)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── Stepper ───────────────────────────────────────────────────────
 function renderStepper(cycleState) {
   const el = $('cyclesteps');
   if (!el) return;
@@ -78,7 +121,7 @@ function render(s) {
     $('cycleState').textContent = s.cycleState || '—';
 
     const usd = (s.spend.usd || 0).toFixed(4);
-    $('spend').textContent = `$${usd} / $${s.spend.capCycle}  ·  ${s.spend.runs} runs`;
+    $('spend').textContent = `$${usd} / $${s.spend.capCycle}  \u00b7  ${s.spend.runs} runs`;
 
     const mc = $('metricsChips');
     if (mc && s.metrics) {
@@ -113,7 +156,7 @@ function render(s) {
     if (sub) sub.textContent = `Agents (${s.agents.length} of ${s.agentTotal ?? s.agents.length})`;
     $('agents').innerHTML = s.agents.length
       ? buildOrgTree(s.agents)
-      : '<div class="empty">no agents spawned yet — start a cycle</div>';
+      : '<div class="empty">no agents spawned yet \u2014 start a cycle</div>';
   }
 
   // kanban (hide always-empty columns to keep it tight)
@@ -125,7 +168,7 @@ function render(s) {
       if (!items.length && !['Todo', 'In Progress', 'In Review', 'Done'].includes(col)) return '';
       return `<div class="kcol">
       <div class="kcol-h">${col}<span>${items.length}</span></div>
-      ${items.length ? items.map((t) => `<div class="card ${col === 'Done' ? 'done' : ''}">${esc(t.subject)}<div class="card-sub">${esc(t.status)}</div></div>`).join('') : '<div class="kcol-empty">—</div>'}
+      ${items.length ? items.map((t) => `<div class="card ${col === 'Done' ? 'done' : ''}">${esc(t.subject)}<div class="card-sub">${esc(t.status)}</div></div>`).join('') : '<div class="kcol-empty">\u2014</div>'}
     </div>`;
     }).join('');
   }
@@ -137,9 +180,9 @@ function render(s) {
     $('changes').innerHTML = s.changes.length ? s.changes.map((c) => {
       const appr = s.approvals.find((a) => a.change_id === c.id && a.decision === 'approve');
       const rej = s.approvals.find((a) => a.change_id === c.id && a.decision === 'rejected');
-      const line = appr ? `✓ approved by ${esc(appr.approver_agent_id)}`
-        : rej ? `✗ rejected — ${esc(rej.reason || '')}`
-        : '⏳ awaiting approval';
+      const line = appr ? `\u2713 approved by ${esc(appr.approver_agent_id)}`
+        : rej ? `\u2717 rejected \u2014 ${esc(rej.reason || '')}`
+        : '\u23f3 awaiting approval';
       return `<div class="change">
       <div class="change-h"><span class="badge">${esc(c.category)}</span><span class="state state-${esc(c.state)}">${esc(c.state)}</span></div>
       <div class="change-sum">${esc(c.summary || '')}</div>
@@ -170,6 +213,13 @@ function render(s) {
   if (chatSig !== lastSig.chat) {
     lastSig.chat = chatSig;
     renderChat(s.console || []);
+  }
+
+  // ideas list
+  const ideasSig = JSON.stringify(s.ideas);
+  if (ideasSig !== lastSig.ideas) {
+    lastSig.ideas = ideasSig;
+    renderIdeas(s.ideas || []);
   }
 }
 
@@ -247,7 +297,7 @@ function renderChat(lines) {
   el.scrollTop = el.scrollHeight;
 }
 
-// live stream
+// ── Live stream ───────────────────────────────────────────────────
 let es;
 function connect() {
   es = new EventSource('/events');
@@ -261,3 +311,17 @@ $('killBtn').onclick = async () => {
   const killed = document.body.classList.contains('paused');
   try { await fetch(killed ? '/api/resume' : '/api/kill', { method: 'POST' }); } catch { /* offline */ }
 };
+
+$('ideaSubmit').addEventListener('click', async () => {
+  const ta = $('ideaText');
+  const text = (ta ? ta.value : '').trim();
+  if (!text) return;
+  try {
+    await fetch('/api/ideas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    });
+    if (ta) ta.value = '';
+  } catch { /* offline */ }
+});
