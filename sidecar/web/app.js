@@ -337,9 +337,12 @@ function renderCouncil(snapshot) {
 
   el.innerHTML = roles.map((a) => {
     const color = STATUS_COLOR[a.status] || '#9ca3af';
+    const isIndependent = INDEPENDENT_ROLES.has((a.role || '').toLowerCase());
+    const indTag = isIndependent ? '<span class="agent-tag-independent">INDEPENDENT</span>' : '';
     return `<div class="council-role">
       <div class="council-role-body">
-        <div class="council-role-name">${esc(a.role)}</div>
+        <div class="council-role-name">${esc(a.role)}${indTag}</div>
+        <div class="council-role-action">${esc(a.current_action || a.status)}</div>
       </div>
       <span class="council-status-badge" style="background:${color}">${esc(a.status || 'unknown')}</span>
     </div>`;
