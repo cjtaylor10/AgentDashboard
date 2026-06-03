@@ -93,8 +93,8 @@ function snapshot(db) {
     consoleLines = allLines.slice(-40);
   } catch { /* table may lack payload_json column in older schemas; degrade gracefully */ }
 
-  const ticketTotal = db.prepare('SELECT COUNT(*) AS total FROM tickets').get();
-  const ticketDone = db.prepare("SELECT COUNT(*) AS done FROM tickets WHERE kanban_column='Done'").get();
+  const ticketTotal = db.prepare('SELECT COUNT(*) AS total FROM ticket').get();
+  const ticketDone = db.prepare("SELECT COUNT(*) AS done FROM ticket WHERE kanban_column='Done'").get();
 
   return {
     goal,
