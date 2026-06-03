@@ -17,6 +17,55 @@ function renderStepper(cycleState) {
   });
 }
 
+const INDEPENDENT_ROLES = new Set(['auditor', 'security', 'compliance']);
+
+function buildOrgTree(agents) {
+  const byId = {};
+  const byRole = {};
+  for (const a of agents) {
+    byId[a.id] = a;
+    const rk = (a.role || '').toLowerCase();
+    if (!byRole[rk]) byRole[rk] = a;
+  }
+
+  const childrenOf = {};
+  const assigned = new Set();
+  for (const a of agents) {
+    const mgr = a.reports_to;
+    if (!mgr) continue;
+    const parent = byId[mgr] || byRole[(mgr || '').toLowerCase()];
+    if (parent && parent.id !== a.id) {
+      if (!childrenOf[parent.id]) childrenOf[parent.id] = [];
+      childrenOf[parent.id].push(a);
+      assigned.add(a.id);
+    }
+  }
+
+  const roots = agents.filter((a) => !assigned.has(a.id));
+
+  function renderNode(a, depth) {
+    const color = STATUS_COLOR[a.status] || '#9ca3af';
+    const isIndependent = INDEPENDENT_ROLES.has((a.role || '').toLowerCase());
+    const indentStyle = depth > 0 ? ` style="margin-left:${depth * 18}px"` : '';
+    const connector = depth > 0 ? '<span class="tree-branch">\u2570\u2500</span>' : '';
+    const indTag = isIndependent ? '<span class="agent-tag-independent">INDEPENDENT</span>' : '';
+    let html = `<div class="agent"${indentStyle}>
+      ${connector}<span class="dot" style="color:${color};background:${color}"></span>
+      <div class="agent-main">
+        <div class="agent-role">${esc(a.role)}<span class="agent-id">${esc(a.id)}</span>${indTag}</div>
+        <div class="agent-action">${esc(a.current_action || a.status)}</div>
+      </div>
+      <span class="agent-status">${esc(a.status)}</span>
+    </div>`;
+    for (const child of (childrenOf[a.id] || [])) {
+      html += renderNode(child, depth + 1);
+    }
+    return html;
+  }
+
+  return roots.map((r) => renderNode(r, 0)).join('');
+}
+
 function render(s) {
   $('goal').textContent = s.goal ? s.goal.text : '— no goal yet —';
   $('cycleState').textContent = s.cycleState || '—';
@@ -43,16 +92,10 @@ function render(s) {
   document.body.classList.toggle('paused', killed);
   $('pausedBanner').classList.toggle('hidden', !killed);
 
-  // org
-  $('agents').innerHTML = s.agents.length ? s.agents.map((a) => `
-    <div class="agent">
-      <span class="dot" style="color:${STATUS_COLOR[a.status] || '#9ca3af'};background:${STATUS_COLOR[a.status] || '#9ca3af'}"></span>
-      <div class="agent-main">
-        <div class="agent-role">${esc(a.role)}<span class="agent-id">${esc(a.id)}</span></div>
-        <div class="agent-action">${esc(a.current_action || a.status)}</div>
-      </div>
-      <span class="agent-status">${esc(a.status)}</span>
-    </div>`).join('') : '<div class="empty">no agents spawned yet — start a cycle</div>';
+  // org — council reporting hierarchy tree
+  $('agents').innerHTML = s.agents.length
+    ? buildOrgTree(s.agents)
+    : '<div class="empty">no agents spawned yet — start a cycle</div>';
 
   // kanban (hide always-empty columns to keep it tight)
   $('kanban').innerHTML = KANBAN.map((col) => {
