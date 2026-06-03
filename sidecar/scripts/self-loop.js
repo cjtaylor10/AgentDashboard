@@ -13,6 +13,7 @@ import { paths, ensureDirs, claudeExists, CLAUDE_BIN } from '../src/config.js';
 import { openDb } from '../src/db.js';
 import { runCycle } from '../src/loop.js';
 import { runTrainingReview } from '../src/training.js';
+import { runDocumentationReview } from '../src/documentation.js';
 
 const targetRepo = paths.root;
 const worktreesDir = path.join(os.tmpdir(), 'agentdash-self-wt');
@@ -81,6 +82,9 @@ async function main() {
 
     try { await runTrainingReview(db); console.log('  -> training review written to sidecar/data/policy-refinements.json'); }
     catch (e) { console.warn('  -> training review failed (non-fatal):', e.message); }
+
+    try { const dr = await runDocumentationReview(db); console.log('  -> documentation review: POLICIES.md written; readmeUpdated=' + dr.readmeUpdated); }
+    catch (e) { console.warn('  -> documentation review failed (non-fatal):', e.message); }
 
     if (!r.merged) {
       console.log(`  -> WITHHELD by the gate (testPass=${r.testPass}, aligned=${r.aligned}, clean=${r.clean}) — continuing`);
