@@ -120,7 +120,7 @@ export const ROLES = {
   training: {
     role: 'training',
     model: 'sonnet',
-    tools: ['Read', 'Bash'],
+    tools: ['Read', 'Grep', 'Glob'],
     charter:
       "You are the Training Lead. You will be given the audit, security, and tester verdict events from the last " +
       "10 council cycles. Analyse these results: identify recurring failures (test FAIL, audit misalignment, " +
