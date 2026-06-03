@@ -54,12 +54,12 @@ async function runRole(db, { roleKey, agentId, cwd, prompt, settingsPath, cycleI
   return { res, json: extractJson(res.result?.result), cost: res.result?.total_cost_usd ?? 0 };
 }
 
-export async function runCycle(db, { goalText }) {
+export async function runCycle(db, { goalText, targetRepo = paths.workspace, worktreesDir = paths.worktrees }) {
   const cycleId = 'cyc-' + randomUUID().slice(0, 8);
   const at = (state, payload = {}) => insertEvent(db, { type: 'cycle.' + state, payload: { cycleId, ...payload } });
   const base = { cycleId, goalId: null, ticketId: null, changeId: null, testPass: false, aligned: false, clean: false, merged: false, advanced: false };
 
-  ensureRepo(paths.workspace);
+  ensureRepo(targetRepo);
   const settingsPath = writeWorkerSettings(paths.data, cycleId + '.settings.json');
 
   // GOAL_INTAKE — the Chair sets the goal
@@ -97,7 +97,7 @@ export async function runCycle(db, { goalText }) {
 
   // ASSIGN — spawn a developer on a fresh, isolated worktree
   const devId = 'dev-' + randomUUID().slice(0, 8);
-  const wt = createWorktree(paths.workspace, paths.worktrees, devId);
+  const wt = createWorktree(targetRepo, worktreesDir, devId);
   upsertAgent(db, { id: devId, role: 'developer', reports_to: 'planner-driver', parent_agent_id: planner, status: 'working', model: ROLES.developer.model, worktree_path: wt.path });
   db.prepare("UPDATE ticket SET status='in_progress', owner=?, kanban_column='In Progress' WHERE id=?").run(devId, ticketId);
   at('assign', { ticketId, devId, branch: wt.branch });
@@ -163,7 +163,7 @@ export async function runCycle(db, { goalText }) {
   base.changeId = changeId;
   if (testPass && aligned && clean) {
     submitApproval(db, { changeId, approverAgentId: planner, reason: 'tester PASS + auditor ALIGNED' });
-    const m = requestMerge(db, { changeId, agentId: devId, branch: wt.branch });
+    const m = requestMerge(db, { changeId, agentId: devId, branch: wt.branch, repoDir: targetRepo });
     base.merged = m.merged;
     if (m.merged) db.prepare("UPDATE ticket SET status='completed', kanban_column='Done' WHERE id=?").run(ticketId);
     at('change_approval', { changeId, merged: m.merged });

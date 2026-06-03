@@ -11,6 +11,7 @@
     "prove": "node --no-warnings scripts/prove-spine.js",
     "prove:enforce": "node --no-warnings scripts/prove-enforcement.js",
     "cycle": "node --no-warnings scripts/run-cycle.js",
+    "self-cycle": "node --no-warnings scripts/self-cycle.js",
     "cockpit": "node --no-warnings scripts/cockpit.js",
     "reset": "node --no-warnings scripts/reset.js"
   }
