@@ -19,6 +19,7 @@ function showPage(name) {
     t.classList.toggle('tab--active', t.dataset.tab === name)
   );
   if (name === 'cycles') fetchCycles();
+  if (name === 'council') fetchRoles();
 }
 
 document.querySelectorAll('.tab').forEach((t) =>
@@ -317,36 +318,76 @@ function renderChat(lines) {
 }
 
 // ── Council ───────────────────────────────────────────────────────
+const COUNCIL_GROUPS = ['Direction', 'Builders', 'Oversight', 'Support'];
+let councilRoster = [];
+let rosterLoaded = false;
+let rosterFetching = false;
+let lastCouncilSnap = null;
+const trunc = (s, n) => { s = String(s ?? ''); return s.length <= n ? s : s.slice(0, n - 1) + '\u2026'; };
+
+async function fetchRoles() {
+  if (rosterLoaded) { renderCouncil(lastCouncilSnap); return; }
+  if (rosterFetching) return;
+  rosterFetching = true;
+  try {
+    const res = await fetch('/api/roles');
+    const r = await res.json();
+    if (Array.isArray(r)) { councilRoster = r; rosterLoaded = true; }
+  } catch { /* offline */ }
+  rosterFetching = false;
+  renderCouncil(lastCouncilSnap);
+}
+
 function renderCouncil(snapshot) {
   const el = $('council-cards');
   if (!el) return;
-  const agents = Array.isArray(snapshot && snapshot.agents) ? snapshot.agents : [];
+  if (snapshot) lastCouncilSnap = snapshot;
+  if (!rosterLoaded) { el.innerHTML = '<div class="council-empty">loading roster\u2026</div>'; return; }
 
-  // one entry per unique role (first agent seen wins)
-  const seen = new Set();
-  const roles = [];
+  const agents = Array.isArray(lastCouncilSnap && lastCouncilSnap.agents) ? lastCouncilSnap.agents : [];
+  const liveByRole = Object.create(null);
   for (const a of agents) {
-    const role = (a.role || '').trim();
-    if (role && !seen.has(role)) { seen.add(role); roles.push(a); }
+    const rk = (a.role || '').toLowerCase();
+    (liveByRole[rk] = liveByRole[rk] || []).push(a);
   }
 
-  if (!roles.length) {
-    el.innerHTML = '<div class="council-empty">No agents active \u2014 start a cycle to populate the council.</div>';
-    return;
-  }
+  const groups = Object.create(null);
+  for (const r of councilRoster) (groups[r.group] = groups[r.group] || []).push(r);
+  const order = [...COUNCIL_GROUPS, ...Object.keys(groups).filter((g) => !COUNCIL_GROUPS.includes(g))];
 
-  el.innerHTML = roles.map((a) => {
-    const color = STATUS_COLOR[a.status] || '#9ca3af';
-    const isIndependent = INDEPENDENT_ROLES.has((a.role || '').toLowerCase());
-    const indTag = isIndependent ? '<span class="agent-tag-independent">INDEPENDENT</span>' : '';
-    return `<div class="council-role">
-      <div class="council-role-body">
-        <div class="council-role-name">${esc(a.role)}${indTag}</div>
-        <div class="council-role-action">${esc(a.current_action || a.status)}</div>
-      </div>
-      <span class="council-status-badge" style="background:${color}">${esc(a.status || 'unknown')}</span>
-    </div>`;
-  }).join('');
+  let html = '';
+  for (const g of order) {
+    const roles = groups[g];
+    if (!roles || !roles.length) continue;
+    html += `<div class="council-group"><h3 class="council-group-title">${esc(g)} <span class="council-group-count">${roles.length}</span></h3><div class="council-roles">`;
+    html += roles.map((r) => {
+      const live = liveByRole[(r.role || '').toLowerCase()] || [];
+      const working = live.filter((a) => a.status === 'working').length;
+      const status = working ? 'working' : (live.length ? (live[0].status || 'idle') : 'idle');
+      const color = STATUS_COLOR[status] || '#6b7f95';
+      const isInd = INDEPENDENT_ROLES.has((r.role || '').toLowerCase());
+      const indTag = isInd ? '<span class="agent-tag-independent">INDEPENDENT</span>' : '';
+      const budget = r.maxBudgetUsd ? `<span class="role-meta">$${esc(String(r.maxBudgetUsd))}/run</span>` : '';
+      const liveTag = live.length
+        ? `<span class="role-live">${live.length} active</span>`
+        : '<span class="role-live role-live--idle">idle</span>';
+      const tools = (r.tools || []).map((t) => `<span class="role-tool">${esc(t)}</span>`).join('');
+      return `<div class="council-role">
+        <div class="council-role-head">
+          <span class="council-dot" style="background:${color}" title="${esc(status)}"></span>
+          <span class="council-role-name">${esc(r.role)}</span>
+          ${indTag}
+          <span class="role-meta role-model">${esc(r.model || '')}</span>
+          ${budget}
+          ${liveTag}
+        </div>
+        <div class="council-role-charter" title="${esc(r.charter || '')}">${esc(trunc(r.charter, 190))}</div>
+        <div class="council-role-tools">${tools}</div>
+      </div>`;
+    }).join('');
+    html += `</div></div>`;
+  }
+  el.innerHTML = html || '<div class="council-empty">roster unavailable</div>';
 }
 
 // ── Live stream ───────────────────────────────────────────────────

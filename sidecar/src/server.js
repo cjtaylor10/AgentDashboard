@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { openDb, addIdea } from './db.js';
 import { BUDGETS, sidecarDir, paths } from './config.js';
+import { ROLES } from './roles.js';
 
 const webDir = path.join(sidecarDir, 'web');
 const PORT = Number(process.env.COCKPIT_PORT || 4317);
@@ -211,6 +212,20 @@ export function startCockpit() {
         res.writeHead(500, { 'content-type': 'application/json' });
         return res.end('{"error":"internal error"}');
       }
+    }
+    if (req.method === 'GET' && url.pathname === '/api/roles') {
+      const GROUPS = {
+        'planner-driver': 'Direction', cio: 'Direction',
+        developer: 'Builders', 'frontend-lead': 'Builders', 'backend-lead': 'Builders', 'database-lead': 'Builders',
+        tester: 'Oversight', auditor: 'Oversight', security: 'Oversight', compliance: 'Oversight',
+        research: 'Support', training: 'Support', documentation: 'Support',
+      };
+      const roster = Object.values(ROLES).map((r) => ({
+        role: r.role, model: r.model, tools: r.tools, charter: r.charter,
+        group: GROUPS[r.role] || 'Other', maxBudgetUsd: r.maxBudgetUsd ?? null,
+      }));
+      res.writeHead(200, { 'content-type': 'application/json' });
+      return res.end(JSON.stringify(roster));
     }
     if (url.pathname === '/api/state') {
       res.writeHead(200, { 'content-type': 'application/json' }); return res.end(JSON.stringify(snapshot(db)));
