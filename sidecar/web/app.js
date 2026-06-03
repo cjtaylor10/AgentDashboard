@@ -4,13 +4,37 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 
 const STATUS_COLOR = { working: '#4682b4', idle: '#6b7f95', blocked: '#e3a84a', error: '#f47067' };
 const KANBAN = ['Backlog', 'Todo', 'In Progress', 'In Review', 'Blocked', 'Done'];
+const PHASES = ['goal_intake','plan','ticket','assign','dev_done','test','audit','security','change_approval','goal_realign','stop'];
+
+function renderStepper(cycleState) {
+  const el = $('cyclesteps');
+  if (!el) return;
+  const cur = PHASES.indexOf(cycleState);
+  el.querySelectorAll('.step[data-phase]').forEach((pill) => {
+    const i = PHASES.indexOf(pill.dataset.phase);
+    const cls = cur < 0 ? 'step--pending' : i < cur ? 'step--done' : i === cur ? 'step--active' : 'step--pending';
+    pill.className = `step ${cls}`;
+  });
+}
 
 function render(s) {
   $('goal').textContent = s.goal ? s.goal.text : '— no goal yet —';
   $('cycleState').textContent = s.cycleState || '—';
+  renderStepper(s.cycleState);
 
   const usd = (s.spend.usd || 0).toFixed(4);
   $('spend').textContent = `$${usd} / $${s.spend.capCycle}  ·  ${s.spend.runs} runs`;
+
+  // metrics chips
+  const mc = $('metricsChips');
+  if (mc && s.metrics) {
+    const { costPerRun, runs, ticketsDone, ticketsTotal } = s.metrics;
+    const chips = [];
+    if (costPerRun != null) chips.push(`<span class="metric-chip">$${Number(costPerRun).toFixed(3)}/run</span>`);
+    if (runs != null) chips.push(`<span class="metric-chip">${runs} runs</span>`);
+    if (ticketsDone != null && ticketsTotal != null) chips.push(`<span class="metric-chip">${ticketsDone}/${ticketsTotal} tickets</span>`);
+    mc.innerHTML = chips.join('');
+  }
 
   const killed = s.killSwitch.engaged;
   const btn = $('killBtn');

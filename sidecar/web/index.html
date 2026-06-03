@@ -28,10 +28,37 @@
         <span class="stat-label">Spend</span>
         <span id="spend" class="mono spend-val">$0.0000</span>
       </div>
+      <div id="metricsChips" class="metrics-chips"></div>
       <button id="killBtn" class="btn btn-danger">PAUSE ALL</button>
       <span id="conn" class="conn-dot" title="SSE connection"></span>
     </nav>
   </header>
+
+  <div class="step-bar">
+    <div id="cyclesteps" class="cycle-steps">
+      <span class="step step--pending" data-phase="goal_intake"><span class="step-pill">goal_intake</span></span>
+      <span class="step-sep">›</span>
+      <span class="step step--pending" data-phase="plan"><span class="step-pill">plan</span></span>
+      <span class="step-sep">›</span>
+      <span class="step step--pending" data-phase="ticket"><span class="step-pill">ticket</span></span>
+      <span class="step-sep">›</span>
+      <span class="step step--pending" data-phase="assign"><span class="step-pill">assign</span></span>
+      <span class="step-sep">›</span>
+      <span class="step step--pending" data-phase="dev_done"><span class="step-pill">dev_done</span></span>
+      <span class="step-sep">›</span>
+      <span class="step step--pending" data-phase="test"><span class="step-pill">test</span></span>
+      <span class="step-sep">›</span>
+      <span class="step step--pending" data-phase="audit"><span class="step-pill">audit</span></span>
+      <span class="step-sep">›</span>
+      <span class="step step--pending" data-phase="security"><span class="step-pill">security</span></span>
+      <span class="step-sep">›</span>
+      <span class="step step--pending" data-phase="change_approval"><span class="step-pill">change_approval</span></span>
+      <span class="step-sep">›</span>
+      <span class="step step--pending" data-phase="goal_realign"><span class="step-pill">goal_realign</span></span>
+      <span class="step-sep">›</span>
+      <span class="step step--pending" data-phase="stop"><span class="step-pill">stop</span></span>
+    </div>
+  </div>
 
   <main class="cockpit">
     <div class="col-left">
