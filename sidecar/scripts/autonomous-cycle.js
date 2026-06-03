@@ -35,7 +35,15 @@ async function main() {
   const goalText = plan.goal + (plan.domain ? ` (domain=${plan.domain})` : '');
   const r = await runCycle(db, { goalText, targetRepo, worktreesDir });
 
-  if (plan.sourceIdeaId) updateIdea(db, plan.sourceIdeaId, { status: r.merged ? 'done' : 'considering' });
+  if (plan.sourceIdeaId) {
+    // A merged FIRST slice of a multi-cycle idea (ideaComplete===false) keeps the idea open with a progress note;
+    // a merged idea the CEO marked complete (or left unspecified) is done; a withheld cycle leaves it considering.
+    const fullyDelivered = r.merged && plan.ideaComplete !== false;
+    const sliceNote = r.merged && !fullyDelivered
+      ? `First slice merged at ${git(['rev-parse', '--short', 'HEAD'])}; follow-on remaining: ${plan.ideaNote || '(see goal)'}`
+      : null;
+    updateIdea(db, plan.sourceIdeaId, { status: fullyDelivered ? 'done' : 'considering', councilNote: sliceNote });
+  }
 
   console.log('\n===== AUTONOMOUS CYCLE RESULT =====');
   console.log('tester PASS :', r.testPass, '| auditor ALIGNED:', r.aligned, '| security CLEAN:', r.clean, '| merged:', r.merged);

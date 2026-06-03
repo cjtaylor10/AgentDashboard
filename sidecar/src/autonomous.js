@@ -41,17 +41,24 @@ export async function proposeGoal(db, { targetRepo = paths.root } = {}) {
     ideasBlock + "\n\n" +
     "RECENTLY COMPLETED (do NOT repeat these):\n" + doneBlock + "\n\n" +
     "You know this system better than the Chair. If a Chair idea is strong, adopt or refine it; if none fit or you have a clearly " +
-    "better improvement, propose your OWN. Prefer SMALL, concrete, testable, high-value improvements (UI, process, governance, " +
-    "docs, hygiene) — something one engineer can finish in a single cycle. CRITICAL: scope the goal to a SINGLE domain " +
-    "(frontend OR backend, not both) that one specialist can complete end-to-end; do NOT propose a fullstack goal that needs " +
-    "BOTH a server change AND a UI change in the same cycle — if a feature needs both, pick the most valuable half to do first. " +
+    "better improvement, propose your OWN.\n\n" +
+    "SCOPING RULES — read carefully, they have been getting misread:\n" +
+    "1. THE WORK THIS CYCLE must be a SINGLE domain (frontend OR backend, not both) that one specialist can finish end-to-end and the " +
+    "tester can verify. Never a fullstack goal needing BOTH a server change AND a UI change in the same cycle.\n" +
+    "2. A valuable idea being LARGE or spanning multiple cycles is NOT a reason to skip it. If the best next move is a big idea, pick its " +
+    "most valuable FIRST single-domain SLICE and build that now (e.g. the backend hook this cycle, the UI that surfaces it next cycle). " +
+    "Set ideaComplete=false and put the remaining slices in ideaNote so a later cycle continues it. Set ideaComplete=true ONLY if this " +
+    "one cycle fully delivers the idea.\n" +
+    "3. ANTI-STAGNATION: do NOT keep polishing the same area cycle after cycle. Look hard at RECENTLY COMPLETED — if the last cycles all " +
+    "touched one feature (e.g. the Council tab), advance a DIFFERENT, higher-impact area now. A Chair idea that has never been STARTED " +
+    "should normally outrank another small polish of something that already works. Diminishing-returns polish is the failure mode to avoid.\n\n" +
     "You may briefly Read the codebase to ground your choice. " +
     "Produce a precise goal statement (with concrete, machine-checkable done_criteria) an engineer could implement, and a `domain` " +
     "(frontend|backend|general). If you base it on a Chair idea set sourceIdeaId to that id and ideaDecision to 'adopt' or 'refine'; " +
     "if you invent your own set sourceIdeaId null and ideaDecision 'own'; if you specifically reject an idea, set ideaDecision 'reject' " +
-    "with that id and note why.\n\n" +
+    "with that id and note why. Set ideaComplete true/false per rule 2 (use false for any first slice of a multi-cycle idea).\n\n" +
     "End with ONLY a fenced json block:\n```json\n" +
-    '{"goal":"...","rationale":"...","domain":"frontend|backend|general","sourceIdeaId":null,"ideaDecision":"adopt|refine|own|reject","ideaNote":"..."}' +
+    '{"goal":"...","rationale":"...","domain":"frontend|backend|general","sourceIdeaId":null,"ideaDecision":"adopt|refine|own|reject","ideaComplete":false,"ideaNote":"..."}' +
     "\n```";
 
   setAgentStatus(db, ceoId, 'working', 'reviewing ideas + state');
@@ -66,5 +73,5 @@ export async function proposeGoal(db, { targetRepo = paths.root } = {}) {
 
   const json = extractJson(res.result?.result);
   insertEvent(db, { type: 'cycle.autonomous_goal', payload: { ceoId, goal: json?.goal, sourceIdeaId: json?.sourceIdeaId, ideaDecision: json?.ideaDecision } });
-  return json; // { goal, rationale, domain, sourceIdeaId, ideaDecision, ideaNote }
+  return json; // { goal, rationale, domain, sourceIdeaId, ideaDecision, ideaComplete, ideaNote }
 }
