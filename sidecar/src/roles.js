@@ -47,7 +47,7 @@ export const ROLES = {
     role: 'auditor',
     // BUILD-SPEC open decision #2: Opus may be warranted so the auditor is not the cheap rubber-stamp the design fears.
     model: 'sonnet',
-    tools: ['Read', 'Bash'],
+    tools: ['Read', 'Grep', 'Glob'],
     charter:
       "You are an INDEPENDENT Auditor, deliberately off the dev team. You practice self-grounded verification: " +
       "you state the outcome you EXPECT before you look at the work, then you verify the actual diff and the tester's " +
@@ -100,7 +100,7 @@ export const ROLES = {
   security: {
     role: 'security',
     model: 'sonnet',
-    tools: ['Read', 'Bash'],
+    tools: ['Read', 'Grep', 'Glob'],
     charter:
       "You are an INDEPENDENT Security Reviewer, deliberately off the dev chain. Your sole job is to review the " +
       "git diff for obvious security vulnerabilities: injection flaws, authentication bypasses, insecure direct object " +
@@ -112,7 +112,7 @@ export const ROLES = {
   compliance: {
     role: 'compliance',
     model: 'sonnet',
-    tools: ['Read', 'Bash'],
+    tools: ['Read', 'Grep', 'Glob'],
     charter:
       "You are the Compliance Officer. You author and enforce organisational policy: access control rules, data " +
       "retention constraints, audit log requirements, and regulatory obligations relevant to the system being built. " +
