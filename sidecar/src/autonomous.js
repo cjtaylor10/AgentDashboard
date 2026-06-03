@@ -42,7 +42,10 @@ export async function proposeGoal(db, { targetRepo = paths.root } = {}) {
     "RECENTLY COMPLETED (do NOT repeat these):\n" + doneBlock + "\n\n" +
     "You know this system better than the Chair. If a Chair idea is strong, adopt or refine it; if none fit or you have a clearly " +
     "better improvement, propose your OWN. Prefer SMALL, concrete, testable, high-value improvements (UI, process, governance, " +
-    "docs, hygiene) — something one engineer can finish in a single cycle. You may briefly Read the codebase to ground your choice. " +
+    "docs, hygiene) — something one engineer can finish in a single cycle. CRITICAL: scope the goal to a SINGLE domain " +
+    "(frontend OR backend, not both) that one specialist can complete end-to-end; do NOT propose a fullstack goal that needs " +
+    "BOTH a server change AND a UI change in the same cycle — if a feature needs both, pick the most valuable half to do first. " +
+    "You may briefly Read the codebase to ground your choice. " +
     "Produce a precise goal statement (with concrete, machine-checkable done_criteria) an engineer could implement, and a `domain` " +
     "(frontend|backend|general). If you base it on a Chair idea set sourceIdeaId to that id and ideaDecision to 'adopt' or 'refine'; " +
     "if you invent your own set sourceIdeaId null and ideaDecision 'own'; if you specifically reject an idea, set ideaDecision 'reject' " +

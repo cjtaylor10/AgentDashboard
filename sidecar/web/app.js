@@ -18,6 +18,7 @@ function showPage(name) {
   document.querySelectorAll('.tab').forEach((t) =>
     t.classList.toggle('tab--active', t.dataset.tab === name)
   );
+  if (name === 'cycles') fetchCycles();
 }
 
 document.querySelectorAll('.tab').forEach((t) =>
@@ -48,6 +49,23 @@ function renderIdeas(ideas) {
       ${idea.council_note ? `<div class="idea-note">${esc(idea.council_note)}</div>` : ''}
     </div>`;
   }).join('');
+}
+
+// ── Cycles (fetched on demand from /api/cycles) ───────────────────
+function renderCycles(cycles) {
+  const el = $('cyclesList');
+  if (!el) return;
+  if (!cycles.length) { el.innerHTML = '<div class="empty">no cycles yet</div>'; return; }
+  el.innerHTML = cycles.slice().reverse().map((c) => `
+    <div class="idea-item">
+      <div class="idea-head"><span class="idea-badge">${esc(c.terminalState || 'unknown')}</span></div>
+      <div class="idea-text">#${esc(String(c.cycleId))} · ${esc(c.goal || '(no goal)')}</div>
+      <div class="idea-note">${esc(String(c.durationSecs))}s · ${esc((c.startedAt || '').slice(0, 19).replace('T', ' '))}</div>
+    </div>`).join('');
+}
+async function fetchCycles() {
+  try { const res = await fetch('/api/cycles'); const c = await res.json(); renderCycles(Array.isArray(c) ? c : []); }
+  catch { /* offline */ }
 }
 
 // ── Stepper ───────────────────────────────────────────────────────

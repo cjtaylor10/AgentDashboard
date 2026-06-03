@@ -286,6 +286,7 @@ body {
 #app[data-page="council"]   [data-section="council"],
 #app[data-page="chat"]      [data-section="chat"],
 #app[data-page="ideas"]     [data-section="ideas"],
+#app[data-page="cycles"]    [data-section="cycles"],
 #app[data-page="docs"]      [data-section="docs"] {
   display: block;
 }
