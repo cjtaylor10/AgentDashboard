@@ -1,0 +1,14 @@
+{
+  "name": "agentdashboard-sidecar",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Orchestrator sidecar for AgentDashboard — the board harness that spawns Claude workers and owns governance + state.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "prove": "node --no-warnings scripts/prove-spine.js",
+    "reset": "node --no-warnings scripts/reset.js"
+  }
+}

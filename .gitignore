@@ -1,0 +1,12 @@
+# Agent work + harness runtime state — NOT part of the harness source
+/workspace/
+/.worktrees/
+/sidecar/node_modules/
+/sidecar/data/
+*.db
+*.db-wal
+*.db-shm
+
+# OS / editor
+Thumbs.db
+.DS_Store
