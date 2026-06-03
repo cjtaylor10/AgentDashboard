@@ -7,122 +7,233 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-icon">▦</span>
-      <span class="brand-name">Agent<b>Dashboard</b></span>
-      <span class="brand-sub">cockpit</span>
-    </div>
 
-    <div class="header-goal">
-      <span class="label">Goal</span>
-      <span id="goal" class="goal-text">—</span>
-    </div>
+  <div class="sticky-header">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon">&#x25A6;</span>
+        <span class="brand-name">Agent<b>Dashboard</b></span>
+        <span class="brand-sub">cockpit</span>
+      </div>
 
-    <nav class="header-controls">
-      <div class="stat-group">
-        <span class="stat-label">Cycle</span>
-        <span id="cycleState" class="pill">—</span>
+      <div class="header-goal">
+        <span class="label">Goal</span>
+        <span id="goal" class="goal-text">&#x2014;</span>
       </div>
-      <div class="stat-group">
-        <span class="stat-label">Spend</span>
-        <span id="spend" class="mono spend-val">$0.0000</span>
-      </div>
-      <div id="metricsChips" class="metrics-chips"></div>
-      <button id="killBtn" class="btn btn-danger">PAUSE ALL</button>
-      <span id="conn" class="conn-dot" title="SSE connection"></span>
+
+      <nav class="header-controls">
+        <div class="stat-group">
+          <span class="stat-label">Cycle</span>
+          <span id="cycleState" class="pill">&#x2014;</span>
+        </div>
+        <div class="stat-group">
+          <span class="stat-label">Spend</span>
+          <span id="spend" class="mono spend-val">$0.0000</span>
+        </div>
+        <div id="metricsChips" class="metrics-chips"></div>
+        <button id="killBtn" class="btn btn-danger">PAUSE ALL</button>
+        <span id="conn" class="conn-dot" title="SSE connection"></span>
+      </nav>
+    </header>
+
+    <nav class="page-nav" role="tablist" aria-label="Cockpit pages">
+      <button class="tab tab--active" data-tab="overview" role="tab">Overview</button>
+      <button class="tab" data-tab="board" role="tab">Board</button>
+      <button class="tab" data-tab="council" role="tab">Council</button>
+      <button class="tab" data-tab="chat" role="tab">Chat</button>
+      <button class="tab" data-tab="ideas" role="tab">Ideas</button>
+      <button class="tab" data-tab="docs" role="tab">Docs</button>
     </nav>
-  </header>
-
-  <div class="step-bar">
-    <div id="cyclesteps" class="cycle-steps">
-      <span class="step step--pending" data-phase="goal_intake"><span class="step-pill">goal_intake</span></span>
-      <span class="step-sep">›</span>
-      <span class="step step--pending" data-phase="plan"><span class="step-pill">plan</span></span>
-      <span class="step-sep">›</span>
-      <span class="step step--pending" data-phase="ticket"><span class="step-pill">ticket</span></span>
-      <span class="step-sep">›</span>
-      <span class="step step--pending" data-phase="assign"><span class="step-pill">assign</span></span>
-      <span class="step-sep">›</span>
-      <span class="step step--pending" data-phase="dev_done"><span class="step-pill">dev_done</span></span>
-      <span class="step-sep">›</span>
-      <span class="step step--pending" data-phase="test"><span class="step-pill">test</span></span>
-      <span class="step-sep">›</span>
-      <span class="step step--pending" data-phase="audit"><span class="step-pill">audit</span></span>
-      <span class="step-sep">›</span>
-      <span class="step step--pending" data-phase="security"><span class="step-pill">security</span></span>
-      <span class="step-sep">›</span>
-      <span class="step step--pending" data-phase="change_approval"><span class="step-pill">change_approval</span></span>
-      <span class="step-sep">›</span>
-      <span class="step step--pending" data-phase="goal_realign"><span class="step-pill">goal_realign</span></span>
-      <span class="step-sep">›</span>
-      <span class="step step--pending" data-phase="stop"><span class="step-pill">stop</span></span>
-    </div>
   </div>
 
-  <main class="cockpit">
-    <div class="col-left">
-      <section class="panel">
-        <header class="panel-hdr">
-          <h2 class="panel-title">Org</h2>
-          <span id="agentsSub" class="panel-sub">who's doing what now</span>
-        </header>
-        <div id="agents" class="agents"></div>
-      </section>
+  <div id="app" data-page="overview">
 
-      <section class="panel">
-        <header class="panel-hdr">
-          <h2 class="panel-title">Cycle</h2>
-          <span class="panel-sub">current steps</span>
-        </header>
-        <div id="cyclesteps" class="cyclesteps"></div>
-      </section>
-    </div>
-
-    <div class="col-right">
-      <section class="panel">
-        <header class="panel-hdr">
-          <h2 class="panel-title">Kanban</h2>
-          <span class="panel-sub">tickets this cycle</span>
-        </header>
-        <div id="kanban" class="kanban"></div>
-      </section>
-
-      <section class="panel">
-        <header class="panel-hdr">
-          <h2 class="panel-title">Changes</h2>
-          <span class="panel-sub">approvals &amp; merges</span>
-        </header>
-        <div id="changes" class="changes"></div>
-      </section>
-    </div>
-
-    <section class="panel panel-feed">
-      <header class="panel-hdr">
-        <h2 class="panel-title">Activity</h2>
-        <span class="panel-sub">event stream</span>
-      </header>
-      <div id="feed" class="feed-list"></div>
+    <!-- ═══════════════════════════ OVERVIEW ═════════════════════════ -->
+    <section class="page" data-section="overview">
+      <div class="step-bar">
+        <div id="cyclesteps" class="cycle-steps">
+          <span class="step step--pending" data-phase="goal_intake"><span class="step-pill">goal_intake</span></span>
+          <span class="step-sep">&#x203A;</span>
+          <span class="step step--pending" data-phase="plan"><span class="step-pill">plan</span></span>
+          <span class="step-sep">&#x203A;</span>
+          <span class="step step--pending" data-phase="ticket"><span class="step-pill">ticket</span></span>
+          <span class="step-sep">&#x203A;</span>
+          <span class="step step--pending" data-phase="assign"><span class="step-pill">assign</span></span>
+          <span class="step-sep">&#x203A;</span>
+          <span class="step step--pending" data-phase="dev_done"><span class="step-pill">dev_done</span></span>
+          <span class="step-sep">&#x203A;</span>
+          <span class="step step--pending" data-phase="test"><span class="step-pill">test</span></span>
+          <span class="step-sep">&#x203A;</span>
+          <span class="step step--pending" data-phase="audit"><span class="step-pill">audit</span></span>
+          <span class="step-sep">&#x203A;</span>
+          <span class="step step--pending" data-phase="security"><span class="step-pill">security</span></span>
+          <span class="step-sep">&#x203A;</span>
+          <span class="step step--pending" data-phase="change_approval"><span class="step-pill">change_approval</span></span>
+          <span class="step-sep">&#x203A;</span>
+          <span class="step step--pending" data-phase="goal_realign"><span class="step-pill">goal_realign</span></span>
+          <span class="step-sep">&#x203A;</span>
+          <span class="step step--pending" data-phase="stop"><span class="step-pill">stop</span></span>
+        </div>
+      </div>
+      <main class="cockpit cockpit--overview">
+        <section class="panel">
+          <header class="panel-hdr">
+            <h2 class="panel-title">Org</h2>
+            <span id="agentsSub" class="panel-sub">who&#x27;s doing what now</span>
+          </header>
+          <div id="agents" class="agents"></div>
+        </section>
+        <section class="panel panel-feed">
+          <header class="panel-hdr">
+            <h2 class="panel-title">Activity</h2>
+            <span class="panel-sub">event stream</span>
+          </header>
+          <div id="feed" class="feed-list"></div>
+        </section>
+      </main>
     </section>
 
-    <section class="panel panel-console">
-      <header class="panel-hdr">
-        <h2 class="panel-title">Console</h2>
-        <span class="panel-sub">agent output stream</span>
-      </header>
-      <div id="console" class="terminal" aria-live="polite" aria-label="Agent output console"></div>
+    <!-- ════════════════════════════ BOARD ══════════════════════════ -->
+    <section class="page" data-section="board">
+      <main class="cockpit cockpit--board">
+        <section class="panel">
+          <header class="panel-hdr">
+            <h2 class="panel-title">Kanban</h2>
+            <span class="panel-sub">tickets this cycle</span>
+          </header>
+          <div id="kanban" class="kanban"></div>
+        </section>
+        <section class="panel">
+          <header class="panel-hdr">
+            <h2 class="panel-title">Changes</h2>
+            <span class="panel-sub">approvals &amp; merges</span>
+          </header>
+          <div id="changes" class="changes"></div>
+        </section>
+      </main>
     </section>
 
-    <section class="panel panel-chat">
-      <header class="panel-hdr">
-        <h2 class="panel-title">Chat</h2>
-        <span class="panel-sub">agent conversation</span>
-      </header>
-      <div id="chat" class="chat-list" aria-live="polite" aria-label="Agent chat messages"></div>
+    <!-- ══════════════════════════ COUNCIL ══════════════════════════ -->
+    <section class="page" data-section="council">
+      <main class="cockpit cockpit--council">
+        <section class="panel council-panel">
+          <header class="panel-hdr">
+            <h2 class="panel-title">Council</h2>
+            <span class="panel-sub">autonomous governance roles</span>
+          </header>
+          <div class="council-roles">
+            <div class="council-role">
+              <span class="council-role-icon">&#x2736;</span>
+              <div class="council-role-body">
+                <div class="council-role-name">Chair</div>
+                <div class="council-role-desc">Oversees overall system direction, breaks deadlocks, and synthesises the Council&#x27;s verdict each cycle.</div>
+              </div>
+            </div>
+            <div class="council-role">
+              <span class="council-role-icon">&#x2713;</span>
+              <div class="council-role-body">
+                <div class="council-role-name">Auditor</div>
+                <div class="council-role-desc">Reviews completed work for correctness, quality, and alignment with the active goal before merge.</div>
+              </div>
+            </div>
+            <div class="council-role">
+              <span class="council-role-icon">&#x26D4;</span>
+              <div class="council-role-body">
+                <div class="council-role-name">Security</div>
+                <div class="council-role-desc">Scans changes for vulnerabilities, OWASP issues, and supply-chain risk. Operates independently from the dev chain.</div>
+              </div>
+            </div>
+            <div class="council-role">
+              <span class="council-role-icon">&#x2315;</span>
+              <div class="council-role-body">
+                <div class="council-role-name">Research</div>
+                <div class="council-role-desc">Gathers external information, explores solution spaces, and provides informed recommendations to planners.</div>
+              </div>
+            </div>
+            <div class="council-role">
+              <span class="council-role-icon">&#x25B6;</span>
+              <div class="council-role-body">
+                <div class="council-role-name">Training</div>
+                <div class="council-role-desc">Curates evaluation datasets, coordinates benchmark runs, and captures model-improvement signals.</div>
+              </div>
+            </div>
+            <div class="council-role">
+              <span class="council-role-icon">&#x2750;</span>
+              <div class="council-role-body">
+                <div class="council-role-name">Documentation</div>
+                <div class="council-role-desc">Maintains living docs, READMEs, changelogs, and decision records as the system evolves.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
     </section>
-  </main>
 
-  <div id="pausedBanner" class="paused-banner hidden">⏸ PAUSED — the loop will halt before its next model call</div>
+    <!-- ════════════════════════════ CHAT ═══════════════════════════ -->
+    <section class="page" data-section="chat">
+      <main class="cockpit cockpit--chat">
+        <section class="panel panel-chat-page">
+          <header class="panel-hdr">
+            <h2 class="panel-title">Chat</h2>
+            <span class="panel-sub">agent conversation</span>
+          </header>
+          <div id="chat" class="chat-list" aria-live="polite" aria-label="Agent chat messages"></div>
+        </section>
+        <section class="panel panel-console-page">
+          <header class="panel-hdr">
+            <h2 class="panel-title">Console</h2>
+            <span class="panel-sub">agent output stream</span>
+          </header>
+          <div id="console" class="terminal" aria-live="polite" aria-label="Agent output console"></div>
+        </section>
+      </main>
+    </section>
+
+    <!-- ════════════════════════════ IDEAS ══════════════════════════ -->
+    <section class="page" data-section="ideas">
+      <main class="cockpit cockpit--ideas">
+        <section class="panel ideas-panel">
+          <header class="panel-hdr">
+            <h2 class="panel-title">Ideas</h2>
+            <span class="panel-sub">submit ideas to the council</span>
+          </header>
+          <div class="ideas-compose">
+            <textarea id="ideaText" class="ideas-textarea" placeholder="Describe your idea or suggestion&#x2026;" rows="4"></textarea>
+            <div class="ideas-compose-foot">
+              <button id="ideaSubmit" class="btn btn-primary">Submit Idea</button>
+            </div>
+          </div>
+          <div id="ideasList" class="ideas-list"></div>
+        </section>
+      </main>
+    </section>
+
+    <!-- ════════════════════════════ DOCS ═══════════════════════════ -->
+    <section class="page" data-section="docs">
+      <main class="cockpit cockpit--docs">
+        <section class="panel docs-panel">
+          <header class="panel-hdr">
+            <h2 class="panel-title">Documentation</h2>
+            <span class="panel-sub">maintained by the Documentation agent</span>
+          </header>
+          <div class="docs-body">
+            <div class="docs-note">
+              <span class="docs-note-glyph">&#x2750;</span>
+              <div class="docs-note-text">
+                <strong>Living documentation</strong> is maintained automatically by the <em>Documentation</em> council agent.
+                As the system evolves &#x2014; tickets complete, goals shift, and architectural decisions are made &#x2014;
+                the Documentation agent updates READMEs, changelogs, and decision records to reflect the current state of the project.
+              </div>
+            </div>
+            <div class="docs-hint">Documentation artifacts will appear here as the Documentation agent produces them.</div>
+          </div>
+        </section>
+      </main>
+    </section>
+
+  </div><!-- /#app -->
+
+  <div id="pausedBanner" class="paused-banner hidden">&#x23F8; PAUSED &#x2014; the loop will halt before its next model call</div>
   <script src="/app.js"></script>
 </body>
 </html>
