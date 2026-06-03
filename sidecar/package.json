@@ -9,6 +9,7 @@
   },
   "scripts": {
     "prove": "node --no-warnings scripts/prove-spine.js",
+    "prove:enforce": "node --no-warnings scripts/prove-enforcement.js",
     "reset": "node --no-warnings scripts/reset.js"
   }
 }

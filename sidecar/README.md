@@ -19,17 +19,23 @@ scripts/
   reset.js        wipe runtime state (workspace, worktrees, db) for a clean re-run
 ```
 
-## Run the spine smoke test
+## Run the proofs
 
 ```sh
-node --no-warnings scripts/prove-spine.js     # or: npm run prove
-node --no-warnings scripts/reset.js           # or: npm run reset  (clean slate)
+npm run prove           # spine: spawn 1 worker -> events into SQLite -> read back
+npm run prove:enforce   # chokepoint: work reaches master ONLY via an authorized approval
+npm run reset           # wipe runtime state (workspace, worktrees, db) for a clean slate
 ```
 
-Spawns one real (small, budget-capped) model call. Override the worker binary with `CLAUDE_BIN`.
+Each spawns one real (small, budget-capped) model call. Override the worker binary with `CLAUDE_BIN`.
 
 ## Status
 
-P1 first slice — the spine (spawn → isolate → persist → query). Next: the council-loop FSM
-(PLAN → TICKET → ASSIGN → DEV → TEST → AUDIT → CHANGE_APPROVAL → GOAL_REALIGN) + the 4 MVP roles +
-the enforcement chokepoint.
+P1 in progress. **Proven in running code:**
+- the **spine** — `prove-spine.js`: spawn → isolate (git worktree) → persist (event log) → query back.
+- the **enforcement chokepoint** — `prove-enforcement.js`: no-approval merge blocked; author self-approval
+  blocked by separation-of-duties; authorized approval merged by the sidecar; a worker cannot self-merge
+  (Layer-B PreToolUse hook + Layer-A sidecar-owned merge).
+
+Next: the council-loop FSM (PLAN → TICKET → ASSIGN → DEV → TEST → AUDIT → CHANGE_APPROVAL → GOAL_REALIGN)
+wiring the 4 MVP roles (Planner/Driver, Developer, Auditor, Tester) around the spine + the gate.
