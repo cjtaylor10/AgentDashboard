@@ -8,11 +8,12 @@ import { BUDGETS } from './config.js';
 export const AUTHORITY = {
   routine: ['planner-driver', 'senior-dev', 'cio', 'chair'],
   cross_domain: ['cio', 'chair'],
-  schema: ['chair'],
-  deploy: ['chair'],
+  schema: ['database-lead', 'cio', 'chair'],
+  deploy: ['cio', 'chair'],
   spend: ['chair'],
   agent_creation: ['chair'],
   goal: ['chair'],
+  security: ['security', 'cio', 'chair'],
 };
 
 const deny = (reason) => ({ allow: false, reason });

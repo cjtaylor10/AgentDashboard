@@ -4,7 +4,11 @@ import fs from 'node:fs';
 import { paths } from '../src/config.js';
 
 for (const d of [paths.worktrees, paths.workspace, paths.data]) {
-  fs.rmSync(d, { recursive: true, force: true });
-  console.log('removed', d);
+  try {
+    fs.rmSync(d, { recursive: true, force: true });
+    console.log('removed', d);
+  } catch (e) {
+    console.warn('could not remove', d, '-', e.code, '(stop the cockpit first if it holds the db open)');
+  }
 }
 console.log('reset complete.');

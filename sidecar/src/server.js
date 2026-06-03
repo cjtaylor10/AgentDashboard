@@ -12,11 +12,49 @@ const webDir = path.join(sidecarDir, 'web');
 const PORT = Number(process.env.COCKPIT_PORT || 4317);
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
+function workerEventToLine(ev) {
+  // Reduce a worker.* event row to a short human-readable text line.
+  // Columns available: id, ts, type, agent_id, payload_json
+  const agent = ev.agent_id ? `[${ev.agent_id}] ` : '';
+  let body = '';
+  try {
+    if (ev.payload_json) {
+      const p = JSON.parse(ev.payload_json);
+      // prefer assistant text content
+      if (p.type === 'content_block_delta' && p.delta?.type === 'text_delta' && p.delta.text) {
+        const txt = p.delta.text.replace(/\n/g, ' ').trim();
+        body = txt.length > 120 ? txt.slice(0, 117) + '...' : txt;
+      } else if (p.type === 'tool_use' && p.name) {
+        body = `tool: ${p.name}`;
+      } else if (p.name) {
+        body = `tool: ${p.name}`;
+      } else if (p.type) {
+        body = p.type;
+      }
+    }
+  } catch { /* ignore parse errors */ }
+  if (!body) body = (ev.type || '').replace('worker.', '');
+  const ts = (ev.ts || '').slice(11, 19);
+  return `${ts} ${agent}${body}`;
+}
+
 function snapshot(db) {
   const goal = db.prepare('SELECT id, text, status FROM goal ORDER BY created_ts DESC LIMIT 1').get() || null;
   const ks = db.prepare('SELECT engaged, reason FROM kill_switch WHERE id = 1').get() || { engaged: 0 };
   const sp = db.prepare('SELECT COALESCE(SUM(usd),0) usd, COUNT(*) runs FROM run').get();
   const cyc = db.prepare("SELECT type FROM event WHERE type LIKE 'cycle.%' ORDER BY id DESC LIMIT 1").get();
+
+  // Fetch recent worker.* events with payload for the console pane.
+  // We select payload_json so we can produce human-readable lines server-side.
+  let consoleLines = [];
+  try {
+    const workerRows = db.prepare(
+      "SELECT id, ts, type, agent_id, payload_json FROM event WHERE type LIKE 'worker.%' ORDER BY id DESC LIMIT 40"
+    ).all();
+    // Reverse so oldest is at top (chronological order for a terminal).
+    consoleLines = workerRows.reverse().map(workerEventToLine);
+  } catch { /* table may lack payload_json column in older schemas; degrade gracefully */ }
+
   return {
     goal,
     killSwitch: { engaged: ks.engaged === 1, reason: ks.reason || null },
@@ -27,6 +65,7 @@ function snapshot(db) {
     changes: db.prepare('SELECT id, category, state, summary, author_agent_id FROM change_request ORDER BY created_ts DESC').all(),
     approvals: db.prepare('SELECT change_id, approver_agent_id, decision, reason FROM approval ORDER BY ts DESC').all(),
     events: db.prepare('SELECT id, ts, type, agent_id FROM event ORDER BY id DESC LIMIT 60').all(),
+    console: consoleLines,
   };
 }
 

@@ -39,11 +39,13 @@ Each spawns one real (small, budget-capped) model call. Override the worker bina
   blocked by separation-of-duties; authorized approval merged by the sidecar; a worker cannot self-merge
   (Layer-B PreToolUse hook + Layer-A sidecar-owned merge).
 - the **council loop** — `run-cycle.js`: one goal taken GOAL_INTAKE → PLAN → TICKET → ASSIGN → DEV → TEST
-  → AUDIT → CHANGE_APPROVAL → GOAL_REALIGN by 4 role agents (Planner/Driver, Developer, outcome-based
-  Tester, independent Auditor), with budget + kill-switch checks before every model call.
+  → AUDIT → SECURITY_REVIEW → CHANGE_APPROVAL → GOAL_REALIGN by role agents (Planner/Driver, Developer,
+  outcome-based Tester, independent Auditor + Security reviewer; CIO / FE-BE-DB leads / Compliance also
+  defined in roles.js), with budget + kill-switch checks before every model call.
 
 - the **cockpit (web-first)** — `run-cycle` aside, `npm run cockpit` serves a live dashboard at
-  http://localhost:4317 (org chart, kanban, change board, activity stream, spend, PAUSE-ALL) as read
-  models over the SQLite spine via SSE.
+  http://localhost:4317 (org chart, kanban, change board, activity stream, a live agent-output console,
+  spend, PAUSE-ALL) as read models over the SQLite spine via SSE.
 
-Next: embedded xterm.js terminal + optional Tauri desktop wrapper; cycle-to-cycle rollover; more org roles.
+Next: build the Tauri desktop wrapper (scaffolded in [`../desktop/`](../desktop/)); cycle-to-cycle
+rollover; richer console text extraction; wire the new domain-lead roles into planning.

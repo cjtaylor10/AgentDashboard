@@ -2,7 +2,7 @@
 
 **An autonomous multi-agent software organization, with a governance layer and a visibility cockpit.**
 
-Status: **DRAFT v0.4** — headless MVP **+ live web cockpit** running in [`sidecar/`](sidecar/): spine, enforcement gate, council-loop cycle, and the dashboard all green (see [P0-FINDINGS.md](P0-FINDINGS.md)).
+Status: **DRAFT v0.5** — headless MVP + live web cockpit in [`sidecar/`](sidecar/): spine, enforcement gate, council loop (now with a **Security review** step), a dashboard with a live **agent console**, and a **Tauri scaffold** in [`desktop/`](desktop/). All green (see [P0-FINDINGS.md](P0-FINDINGS.md)).
 Owner / "Chair": Carson. Last updated: 2026-06-02.
 
 ---

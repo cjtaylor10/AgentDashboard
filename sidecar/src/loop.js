@@ -1,5 +1,5 @@
 // The council loop (BUILD-SPEC §7) — one governed cycle:
-//   GOAL_INTAKE -> PLAN -> TICKET -> ASSIGN -> DEV -> TEST -> AUDIT -> CHANGE_APPROVAL -> GOAL_REALIGN -> STOP
+//   GOAL_INTAKE -> PLAN -> TICKET -> ASSIGN -> DEV -> TEST -> AUDIT -> SECURITY_REVIEW -> CHANGE_APPROVAL -> GOAL_REALIGN -> STOP
 // Driven by the sidecar; Claude agents reason inside each state. Budget + kill switch are checked before
 // every model call so a runaway or a PAUSE-ALL halts the loop mid-cycle.
 import { randomUUID } from 'node:crypto';
@@ -57,7 +57,7 @@ async function runRole(db, { roleKey, agentId, cwd, prompt, settingsPath, cycleI
 export async function runCycle(db, { goalText }) {
   const cycleId = 'cyc-' + randomUUID().slice(0, 8);
   const at = (state, payload = {}) => insertEvent(db, { type: 'cycle.' + state, payload: { cycleId, ...payload } });
-  const base = { cycleId, goalId: null, ticketId: null, changeId: null, testPass: false, aligned: false, merged: false, advanced: false };
+  const base = { cycleId, goalId: null, ticketId: null, changeId: null, testPass: false, aligned: false, clean: false, merged: false, advanced: false };
 
   ensureRepo(paths.workspace);
   const settingsPath = writeWorkerSettings(paths.data, cycleId + '.settings.json');
@@ -71,8 +71,10 @@ export async function runCycle(db, { goalText }) {
   // register the standing oversight agents (independent of the dev chain)
   const planner = 'planner-' + randomUUID().slice(0, 6);
   const auditor = 'auditor-' + randomUUID().slice(0, 6);
+  const securityAgent = 'security-' + randomUUID().slice(0, 6);
   upsertAgent(db, { id: planner, role: 'planner-driver', reports_to: 'chair', status: 'idle', model: ROLES['planner-driver'].model });
   upsertAgent(db, { id: auditor, role: 'auditor', reports_to: 'chair', status: 'idle', model: ROLES.auditor.model });
+  upsertAgent(db, { id: securityAgent, role: 'security', reports_to: 'chair', status: 'idle', model: ROLES.security.model });
 
   // PLAN
   at('plan');
@@ -139,11 +141,27 @@ export async function runCycle(db, { goalText }) {
   at('audit', { auditor, aligned, verdict: audit.json?.verdict ?? null });
   base.aligned = aligned;
 
+  // SECURITY REVIEW — independent; reviews the diff for vulnerabilities before change approval
+  const secDiff = git(wt.path, ['diff', 'master', '--', '.']).slice(0, 4000);
+  const secReview = await runRole(db, {
+    roleKey: 'security', agentId: securityAgent, cwd: wt.path, settingsPath, cycleId,
+    prompt: "You are the Security Reviewer. Review the following git diff for obvious security vulnerabilities " +
+      "(injection, auth bypasses, committed secrets, missing input validation, insecure deserialization, etc.). " +
+      "Do NOT evaluate correctness or feature completeness — only security posture.\n\n" +
+      "GIT DIFF (what was actually built):\n" + (secDiff || '(empty diff)') +
+      "\n\nIf you find no actionable issues, set clean:true and leave findings empty. " +
+      "If you find issues, set clean:false and list each finding with file and line." +
+      jsonSuffix('{"clean":true,"findings":["..."]}'),
+  });
+  const clean = secReview.json?.clean === true;
+  at('security', { securityAgent, clean, findings: secReview.json?.findings ?? [] });
+  base.clean = clean;
+
   // CHANGE_APPROVAL — only on demonstrated success; the Planner exercises routine approval authority,
   // and the merge still passes through the sidecar gate (authority + separation of duties + budget).
   const changeId = createChangeRequest(db, { category: 'routine', summary: `merge ${wt.branch} for ${ticketId}`, authorAgentId: devId });
   base.changeId = changeId;
-  if (testPass && aligned) {
+  if (testPass && aligned && clean) {
     submitApproval(db, { changeId, approverAgentId: planner, reason: 'tester PASS + auditor ALIGNED' });
     const m = requestMerge(db, { changeId, agentId: devId, branch: wt.branch });
     base.merged = m.merged;
@@ -151,7 +169,7 @@ export async function runCycle(db, { goalText }) {
     at('change_approval', { changeId, merged: m.merged });
   } else {
     db.prepare("UPDATE ticket SET status='pending', kanban_column='Blocked' WHERE id=?").run(ticketId);
-    insertEvent(db, { type: 'ticket.reopened', agentId: planner, payload: { ticketId, reason: `testPass=${testPass}, aligned=${aligned}` } });
+    insertEvent(db, { type: 'ticket.reopened', agentId: planner, payload: { ticketId, reason: `testPass=${testPass}, aligned=${aligned}, clean=${clean}` } });
     at('change_approval', { changeId, merged: false, reason: 'withheld — verification not satisfied' });
   }
 
@@ -161,7 +179,7 @@ export async function runCycle(db, { goalText }) {
   at('goal_realign', { advanced: base.advanced });
   at('stop', { advanced: base.advanced });
 
-  base.agents = { planner, devId, tester, auditor };
+  base.agents = { planner, devId, tester, auditor, securityAgent };
   base.branch = wt.branch;
   return base;
 }

@@ -59,6 +59,30 @@ function render(s) {
     const kind = (e.type || '').split('.')[0];
     return `<div class="ev ev-${esc(kind)}"><span class="ev-t">${esc(e.type)}</span><span class="ev-a">${esc(e.agent_id || '')}</span><span class="ev-ts">${esc((e.ts || '').slice(11, 19))}</span></div>`;
   }).join('');
+
+  // terminal console — agent output stream
+  renderConsole(s.console || []);
+}
+
+function renderConsole(lines) {
+  const el = $('console');
+  if (!el) return;
+  // Parse each pre-built line from server: "HH:MM:SS [agent] body"
+  // Re-render with span-level coloring for readability.
+  const linePattern = /^(\d{2}:\d{2}:\d{2}) (\[([^\]]+)\] )?(.*)$/;
+  el.innerHTML = lines.map((raw) => {
+    const m = linePattern.exec(raw);
+    if (m) {
+      const ts = esc(m[1]);
+      const agentId = m[3] ? esc(m[3]) : '';
+      const body = esc(m[4] || '');
+      const agentHtml = agentId ? `<span class="term-agent">[${agentId}]</span> ` : '';
+      return `<span class="term-line"><span class="term-ts">${ts}</span>${agentHtml}<span class="term-body">${body}</span></span>`;
+    }
+    return `<span class="term-line"><span class="term-body">${esc(raw)}</span></span>`;
+  }).join('\n');
+  // Auto-scroll to bottom so newest output is always visible.
+  el.scrollTop = el.scrollHeight;
 }
 
 // live stream
