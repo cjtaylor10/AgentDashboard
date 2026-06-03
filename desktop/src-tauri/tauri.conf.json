@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "AgentDashboard",
-  "version": "0.1.1",
-  "identifier": "com.agentdashboard.app",
+  "version": "0.1.2",
+  "identifier": "com.agentdashboard.cockpit",
   "build": {
     "frontendDist": "http://localhost:4317"
   },

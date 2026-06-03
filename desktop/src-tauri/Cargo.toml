@@ -23,9 +23,11 @@ tauri-plugin-shell = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
-# Desktop-only plugins. The updater is not available on mobile targets, so it is
-# gated behind the same `cfg(desktop)` guard used in lib.rs.
-[target.'cfg(desktop)'.dependencies]
+# Updater is desktop-only. Must use REAL target_os cfgs that Cargo evaluates during
+# dependency resolution — the previous `cfg(desktop)` is a Tauri compile-time cfg that
+# Cargo IGNORES, so the crate was silently dropped (the unresolved-import build error).
+# lib.rs still gates the updater code with #[cfg(desktop)] so mobile would skip it.
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-updater = "2"
 
 [profile.release]
