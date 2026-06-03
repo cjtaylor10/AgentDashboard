@@ -1,0 +1,85 @@
+# Builds the Tauri 2 desktop app for Windows and macOS and publishes a
+# GitHub Release that includes the auto-updater artifacts (latest.json +
+# signed bundles). Driven by tauri-apps/tauri-action.
+#
+# How a release happens:
+#   1. Tag a commit with a version tag, e.g.  git tag v0.1.0 && git push origin v0.1.0
+#   2. The "push tags v*" trigger below fires this workflow.
+#   3. Each OS in the matrix builds its bundles and uploads them to a single
+#      GitHub Release named after the tag.
+#
+# You can also run it on demand from the Actions tab via workflow_dispatch.
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#   TAURI_SIGNING_PRIVATE_KEY          - the updater private key (output of `tauri signer generate`)
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD - the password used when generating that key
+# GITHUB_TOKEN is provided automatically by GitHub Actions; it just needs
+# write permission to create the release (granted via `permissions` below).
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*" # any tag like v0.1.0, v1.2.3, etc.
+  workflow_dispatch: # allow manual runs from the Actions UI
+
+# tauri-action creates/updates a GitHub Release, which requires write access
+# to repository contents.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false # let one OS finish even if the other fails
+      matrix:
+        # Build on both platforms. macOS is built as a universal binary
+        # (see the args below); Windows produces its native installers.
+        os:
+          - windows-latest
+          - macos-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # 1. Get the source.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Node 24 toolchain. The Tauri frontend (the sidecar cockpit) targets
+      #    Node 24, and tauri-action runs any beforeBuild hooks under it.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # 3. Rust toolchain. On macOS we add both Apple targets so the universal
+      #    (fat) binary can be produced; Windows uses the default host target.
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      # 4. Build the app and publish the GitHub Release with updater artifacts.
+      - name: Build and release Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          # GitHub-provided token used to create the release and upload assets.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Updater signing credentials. Without these, tauri-action will not
+          # emit the signed updater bundles / latest.json.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          # The Tauri project lives in desktop/src-tauri (where Cargo.toml and
+          # tauri.conf.json are), not at the repo root.
+          projectPath: desktop/src-tauri
+          # Name the release/tag after the pushed git tag (e.g. v0.1.0).
+          # __VERSION__ is substituted with the version from tauri.conf.json
+          # when this runs via workflow_dispatch (no git tag present).
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || 'v__VERSION__' }}
+          releaseName: ${{ github.ref_type == 'tag' && github.ref_name || 'AgentDashboard v__VERSION__' }}
+          # On macOS, build a single universal binary covering Apple Silicon
+          # and Intel. Windows passes no extra args.
+          args: ${{ matrix.os == 'macos-latest' && '--target universal-apple-darwin' || '' }}

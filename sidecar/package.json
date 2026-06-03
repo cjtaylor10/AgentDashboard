@@ -17,6 +17,7 @@
     "autonomous": "node --no-warnings scripts/autonomous-cycle.js",
     "cockpit": "node --no-warnings scripts/cockpit.js",
     "reset": "node --no-warnings scripts/reset.js",
-    "smoke:roles": "node --no-warnings scripts/smoke-roles.js"
+    "smoke:roles": "node --no-warnings scripts/smoke-roles.js",
+    "release": "node --no-warnings scripts/release.js"
   }
 }
