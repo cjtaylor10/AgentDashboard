@@ -24,12 +24,15 @@ export function shortId(id) {
 
 export function workerEventToLine(ev) {
   // Reduce a worker.* event row to a short human-readable text line.
+  // Returns null for noisy framing events that clutter the console.
   // Columns available: id, ts, type, agent_id, payload_json
   const agent = ev.agent_id ? `[${ev.agent_id}] ` : '';
   let body = '';
   try {
     if (ev.payload_json) {
       const p = JSON.parse(ev.payload_json);
+      // Drop framing / meta events entirely
+      if (p.type === 'system' || p.type === 'user' || p.type === 'rate_limit_event') return null;
       // prefer assistant text content
       if (p.type === 'assistant' && Array.isArray(p.message?.content)) {
         const txt = p.message.content
@@ -38,6 +41,12 @@ export function workerEventToLine(ev) {
           .join(' ')
           .replace(/\s+/g, ' ')
           .trim();
+        if (!txt) return null;
+        body = truncate(txt, 120);
+      } else if (p.type === 'result') {
+        // result events with no text body are noise
+        const txt = (typeof p.text === 'string' ? p.text : '').trim();
+        if (!txt) return null;
         body = truncate(txt, 120);
       } else if (p.type === 'content_block_delta' && p.delta?.type === 'text_delta' && p.delta.text) {
         const txt = p.delta.text.replace(/\n/g, ' ').trim();
@@ -67,10 +76,11 @@ function snapshot(db) {
   let consoleLines = [];
   try {
     const workerRows = db.prepare(
-      "SELECT id, ts, type, agent_id, payload_json FROM event WHERE type LIKE 'worker.%' ORDER BY id DESC LIMIT 40"
+      "SELECT id, ts, type, agent_id, payload_json FROM event WHERE type LIKE 'worker.%' ORDER BY id DESC LIMIT 150"
     ).all();
-    // Reverse so oldest is at top (chronological order for a terminal).
-    consoleLines = workerRows.reverse().map(workerEventToLine);
+    // Reverse so oldest is at top, filter framing events, keep most recent 40 non-null lines.
+    const allLines = workerRows.reverse().map(workerEventToLine).filter(l => l != null && l !== '');
+    consoleLines = allLines.slice(-40);
   } catch { /* table may lack payload_json column in older schemas; degrade gracefully */ }
 
   return {
