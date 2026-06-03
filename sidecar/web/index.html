@@ -53,23 +53,19 @@
     <!-- ═══════════════════════════ OVERVIEW ═════════════════════════ -->
     <section class="page" data-section="overview">
       <div id="hero-strip" class="hero-strip">
-        <div class="hero-item">
-          <span class="hero-label">Current Phase</span>
-          <span id="hero-phase" class="hero-phase">&#x2014;</span>
+        <div class="hero-top">
+          <div class="hero-item">
+            <span class="hero-label">Current Phase</span>
+            <span id="hero-phase" class="hero-phase">&#x2014;</span>
+          </div>
+          <div class="hero-divider"></div>
+          <div class="hero-item">
+            <span class="hero-label">Agents Working</span>
+            <span id="hero-working" class="hero-working">0</span>
+          </div>
         </div>
-        <div class="hero-divider"></div>
-        <div class="hero-item">
-          <span class="hero-label">Agents Working</span>
-          <span id="hero-working" class="hero-working">0</span>
-        </div>
-      </div>
-      <main class="cockpit cockpit--overview">
-        <section class="panel">
-          <header class="panel-hdr">
-            <h2 class="panel-title">Org</h2>
-            <span id="agentsSub" class="panel-sub">who&#x27;s doing what now</span>
-          </header>
-          <div id="cyclesteps" class="cycle-steps cycle-steps--panel">
+        <div class="hero-steps-row">
+          <div id="cyclesteps" class="cycle-steps">
             <span class="step step--pending" data-phase="goal_intake"><span class="step-pill">goal_intake</span></span>
             <span class="step-sep">&#x203A;</span>
             <span class="step step--pending" data-phase="plan"><span class="step-pill">plan</span></span>
@@ -92,22 +88,34 @@
             <span class="step-sep">&#x203A;</span>
             <span class="step step--pending" data-phase="stop"><span class="step-pill">stop</span></span>
           </div>
-          <div id="agents" class="agents"></div>
-        </section>
-        <section class="panel panel-feed">
-          <header class="panel-hdr">
-            <h2 class="panel-title">Activity</h2>
-            <span class="panel-sub">event stream</span>
-          </header>
-          <div id="feed" class="feed-list"></div>
-        </section>
-        <section class="panel" style="grid-column:1/-1">
-          <header class="panel-hdr">
-            <h2 class="panel-title">Live Output</h2>
-            <span class="panel-sub">agent output stream</span>
-          </header>
-          <div id="overview-console" class="terminal"></div>
-        </section>
+        </div>
+      </div>
+      <main class="cockpit cockpit--overview">
+        <div class="overview-primary">
+          <section class="panel overview-terminal-panel">
+            <header class="panel-hdr">
+              <h2 class="panel-title">Live Output</h2>
+              <span class="panel-sub">agent output stream</span>
+            </header>
+            <div id="overview-console" class="terminal terminal--hero"></div>
+          </section>
+        </div>
+        <div class="overview-sidebar">
+          <section class="panel">
+            <header class="panel-hdr">
+              <h2 class="panel-title">Org</h2>
+              <span id="agentsSub" class="panel-sub">who&#x27;s doing what now</span>
+            </header>
+            <div id="agents" class="agents"></div>
+          </section>
+          <section class="panel panel-feed">
+            <header class="panel-hdr">
+              <h2 class="panel-title">Activity</h2>
+              <span class="panel-sub">event stream</span>
+            </header>
+            <div id="feed" class="feed-list"></div>
+          </section>
+        </div>
       </main>
     </section>
 

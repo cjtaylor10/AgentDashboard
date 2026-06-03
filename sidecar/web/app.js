@@ -204,7 +204,13 @@ function render(s) {
     const heroPhase = $('hero-phase');
     if (heroPhase) {
       const idle = !s.cycleState || s.cycleState === 'stop';
-      heroPhase.textContent = idle ? '\u2014' : s.cycleState;
+      const newText = idle ? '\u2014' : s.cycleState;
+      if (heroPhase.textContent !== newText) {
+        heroPhase.textContent = newText;
+        heroPhase.classList.remove('hero-phase--changing');
+        void heroPhase.offsetWidth;
+        heroPhase.classList.add('hero-phase--changing');
+      }
     }
   }
 
@@ -285,14 +291,25 @@ function render(s) {
     renderChat(s.console || []);
   }
 
-  // overview console strip — last 8 lines of agent output
+  // overview console — full colored render of agent output stream
   const overviewConsoleSig = JSON.stringify(s.console);
   if (overviewConsoleSig !== lastSig.overviewConsole) {
     lastSig.overviewConsole = overviewConsoleSig;
     const el = $('overview-console');
     if (el) {
-      const lines = (s.console || []).join('\n').split('\n');
-      el.textContent = lines.slice(-8).join('\n');
+      const linePattern = /^(\d{2}:\d{2}:\d{2}) (\[([^\]]+)\] )?(.*)$/;
+      const raw_lines = s.console || [];
+      el.innerHTML = raw_lines.map((raw) => {
+        const m = linePattern.exec(raw);
+        if (m) {
+          const ts = esc(m[1]);
+          const agentId = m[3] ? esc(m[3]) : '';
+          const body = esc(m[4] || '');
+          const agentHtml = agentId ? `<span class="term-agent">[${agentId}]</span> ` : '';
+          return `<span class="term-line"><span class="term-ts">${ts}</span>${agentHtml}<span class="term-body">${body}</span></span>`;
+        }
+        return `<span class="term-line"><span class="term-body">${esc(raw)}</span></span>`;
+      }).join('');
       el.scrollTop = el.scrollHeight;
     }
   }

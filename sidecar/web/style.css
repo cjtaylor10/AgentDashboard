@@ -337,7 +337,10 @@ body { padding-left: var(--nav-w); }
 /* ── Client-side routing ─────────────────────────────────────────── */
 .page { display: none; }
 
-#app[data-page="overview"]  [data-section="overview"],
+#app[data-page="overview"]  [data-section="overview"] {
+  display: flex;
+  flex-direction: column;
+}
 #app[data-page="board"]     [data-section="board"],
 #app[data-page="council"]   [data-section="council"],
 #app[data-page="chat"]      [data-section="chat"],
@@ -357,11 +360,50 @@ body { padding-left: var(--nav-w); }
 
 /* ── Overview layout ─────────────────────────────────────────────── */
 .cockpit--overview {
+  flex: 1;
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 1fr 260px;
   gap: var(--sp-5);
   padding: var(--sp-5) var(--sp-6);
   align-items: start;
+  min-height: 0;
+}
+
+/* primary (left) column — tall terminal */
+.overview-primary {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.overview-terminal-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.terminal--hero {
+  flex: 1;
+  min-height: 55vh;
+  max-height: none;
+}
+
+/* secondary (right) column — narrow sidebar */
+.overview-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  overflow-y: auto;
+  max-height: calc(100vh - 130px);
+}
+
+.overview-sidebar .agents {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.overview-sidebar .feed-list {
+  max-height: 230px;
 }
 
 /* ── Board layout ────────────────────────────────────────────────── */
@@ -752,11 +794,25 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
 /* ── Hero strip ──────────────────────────────────────────────────── */
 .hero-strip {
   display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  background:
+    linear-gradient(180deg, rgba(70,130,180,.12) 0%, rgba(70,130,180,.04) 65%, transparent 100%),
+    var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-top {
+  display: flex;
   align-items: center;
   gap: var(--sp-7);
-  padding: var(--sp-5) var(--sp-6);
-  background: linear-gradient(135deg, rgba(70,130,180,.09) 0%, rgba(70,130,180,.04) 100%);
-  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--sp-5) var(--sp-6) var(--sp-3);
+}
+
+.hero-steps-row {
+  padding: var(--sp-2) var(--sp-6) var(--sp-3);
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(7,13,22,.30);
 }
 
 .hero-item {
@@ -775,16 +831,17 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
 
 .hero-phase {
   font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
-  font-size: 26px;
+  font-size: 38px;
   font-weight: 700;
   color: var(--primary-light);
   letter-spacing: -.5px;
   line-height: 1;
+  text-shadow: 0 0 24px rgba(70,130,180,.40);
 }
 
 .hero-working {
   font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
-  font-size: 26px;
+  font-size: 38px;
   font-weight: 700;
   color: var(--green);
   letter-spacing: -.5px;
@@ -1268,4 +1325,31 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   color: var(--text);
   line-height: 1.5;
   word-break: break-word;
+}
+
+/* ── Overview animations ──────────────────────────────────────────── */
+@keyframes phase-enter {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-phase--changing {
+  animation: phase-enter 360ms var(--ease) both;
+}
+
+@keyframes term-line-appear {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.terminal--hero .term-line:nth-last-child(1) {
+  animation: term-line-appear 240ms var(--ease) both;
+}
+.terminal--hero .term-line:nth-last-child(2) {
+  animation: term-line-appear 240ms var(--ease) both;
+  animation-delay: 30ms;
+}
+.terminal--hero .term-line:nth-last-child(3) {
+  animation: term-line-appear 240ms var(--ease) both;
+  animation-delay: 60ms;
 }
