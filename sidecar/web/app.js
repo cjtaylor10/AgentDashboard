@@ -2,7 +2,7 @@
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-const STATUS_COLOR = { working: '#3b82f6', idle: '#9ca3af', blocked: '#f59e0b', error: '#ef4444' };
+const STATUS_COLOR = { working: '#4682b4', idle: '#6b7f95', blocked: '#e3a84a', error: '#f47067' };
 const KANBAN = ['Backlog', 'Todo', 'In Progress', 'In Review', 'Blocked', 'Done'];
 
 function render(s) {

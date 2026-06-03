@@ -8,39 +8,73 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">▦ Agent<b>Dashboard</b><span class="sub">cockpit</span></div>
-    <div class="goal"><span class="goal-lbl">GOAL</span><span id="goal">—</span></div>
-    <div class="controls">
-      <div class="stat"><span class="lbl">cycle</span><span id="cycleState" class="pill">—</span></div>
-      <div class="stat"><span class="lbl">spend</span><span id="spend" class="mono">$0.0000</span></div>
-      <button id="killBtn" class="btn btn-danger">PAUSE ALL</button>
-      <span id="conn" class="conn off" title="live connection"></span>
+    <div class="brand">
+      <span class="brand-icon">▦</span>
+      <span class="brand-name">Agent<b>Dashboard</b></span>
+      <span class="brand-sub">cockpit</span>
     </div>
+
+    <div class="header-goal">
+      <span class="label">Goal</span>
+      <span id="goal" class="goal-text">—</span>
+    </div>
+
+    <nav class="header-controls">
+      <div class="stat-group">
+        <span class="stat-label">Cycle</span>
+        <span id="cycleState" class="pill">—</span>
+      </div>
+      <div class="stat-group">
+        <span class="stat-label">Spend</span>
+        <span id="spend" class="mono spend-val">$0.0000</span>
+      </div>
+      <button id="killBtn" class="btn btn-danger">PAUSE ALL</button>
+      <span id="conn" class="conn-dot" title="SSE connection"></span>
+    </nav>
   </header>
 
-  <main class="grid">
-    <section class="panel">
-      <h2>Org <span class="h2sub">who's doing what now</span></h2>
-      <div id="agents" class="agents"></div>
-    </section>
+  <main class="cockpit">
+    <div class="col-left">
+      <section class="panel">
+        <header class="panel-hdr">
+          <h2 class="panel-title">Org</h2>
+          <span class="panel-sub">who's doing what now</span>
+        </header>
+        <div id="agents" class="agents"></div>
+      </section>
+    </div>
 
-    <section class="panel">
-      <h2>Kanban <span class="h2sub">tickets this cycle</span></h2>
-      <div id="kanban" class="kanban"></div>
-    </section>
+    <div class="col-right">
+      <section class="panel">
+        <header class="panel-hdr">
+          <h2 class="panel-title">Kanban</h2>
+          <span class="panel-sub">tickets this cycle</span>
+        </header>
+        <div id="kanban" class="kanban"></div>
+      </section>
 
-    <section class="panel">
-      <h2>Change board <span class="h2sub">approvals &amp; merges</span></h2>
-      <div id="changes" class="changes"></div>
-    </section>
+      <section class="panel">
+        <header class="panel-hdr">
+          <h2 class="panel-title">Changes</h2>
+          <span class="panel-sub">approvals &amp; merges</span>
+        </header>
+        <div id="changes" class="changes"></div>
+      </section>
+    </div>
 
-    <section class="panel feed">
-      <h2>Activity <span class="h2sub">event stream</span></h2>
+    <section class="panel panel-feed">
+      <header class="panel-hdr">
+        <h2 class="panel-title">Activity</h2>
+        <span class="panel-sub">event stream</span>
+      </header>
       <div id="feed" class="feed-list"></div>
     </section>
 
-    <section class="panel terminal-panel">
-      <h2>Console <span class="h2sub">agent output stream</span></h2>
+    <section class="panel panel-console">
+      <header class="panel-hdr">
+        <h2 class="panel-title">Console</h2>
+        <span class="panel-sub">agent output stream</span>
+      </header>
       <div id="console" class="terminal" aria-live="polite" aria-label="Agent output console"></div>
     </section>
   </main>
