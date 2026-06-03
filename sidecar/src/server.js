@@ -12,6 +12,10 @@ const webDir = path.join(sidecarDir, 'web');
 const PORT = Number(process.env.COCKPIT_PORT || 4317);
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
+export function truncate(text, max) {
+  return text.length <= max ? text : text.slice(0, max - 3) + '...';
+}
+
 export function workerEventToLine(ev) {
   // Reduce a worker.* event row to a short human-readable text line.
   // Columns available: id, ts, type, agent_id, payload_json
@@ -28,10 +32,10 @@ export function workerEventToLine(ev) {
           .join(' ')
           .replace(/\s+/g, ' ')
           .trim();
-        body = txt.length > 120 ? txt.slice(0, 117) + '...' : txt;
+        body = truncate(txt, 120);
       } else if (p.type === 'content_block_delta' && p.delta?.type === 'text_delta' && p.delta.text) {
         const txt = p.delta.text.replace(/\n/g, ' ').trim();
-        body = txt.length > 120 ? txt.slice(0, 117) + '...' : txt;
+        body = truncate(txt, 120);
       } else if (p.type === 'tool_use' && p.name) {
         body = `tool: ${p.name}`;
       } else if (p.name) {
