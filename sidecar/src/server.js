@@ -207,8 +207,9 @@ export function startCockpit() {
         res.writeHead(200, { 'content-type': 'application/json' });
         return res.end(JSON.stringify(summaries));
       } catch (e) {
+        console.error('[cockpit] /api/cycles error:', e.message);
         res.writeHead(500, { 'content-type': 'application/json' });
-        return res.end(JSON.stringify({ error: String(e.message) }));
+        return res.end('{"error":"internal error"}');
       }
     }
     if (url.pathname === '/api/state') {
