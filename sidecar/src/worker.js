@@ -1,9 +1,9 @@
 // Worker runtime: spawn a headless Claude worker and stream its lifecycle events.
 // This wraps the P0-confirmed recipe (see P0-FINDINGS.md). Every native flag does heavy lifting:
 //   tool-scoping, per-run budget cap, role injection, hook enforcement, session control.
-import { spawn } from 'node:child_process';
+import { spawn, execFile } from 'node:child_process';
 import readline from 'node:readline';
-import { CLAUDE_BIN } from './config.js';
+import { CLAUDE_BIN, BUDGETS } from './config.js';
 
 // Strip the "running inside Claude Code" markers so the child behaves as an independent process.
 const STRIP_ENV = ['CLAUDECODE', 'CLAUDE_CODE_ENTRYPOINT', 'CLAUDE_CODE_SESSION_ID'];
@@ -12,9 +12,23 @@ const DEFAULT_CHARTER =
   'You are an autonomous worker agent. Do exactly the assigned task and nothing more. ' +
   'If a tool call is blocked by policy, do not retry — stop and report that it was blocked.';
 
+// Kill a worker and its ENTIRE child-process tree. The direct child is claude.exe, which itself
+// spawns tool subprocesses (shells, test runners); a plain child.kill() can orphan those. On Windows
+// taskkill /T walks the tree; on POSIX we SIGKILL the child (best-effort).
+function killTree(pid) {
+  if (!pid) return;
+  if (process.platform === 'win32') {
+    try { execFile('taskkill', ['/pid', String(pid), '/T', '/F'], () => {}); } catch { /* ignore */ }
+  } else {
+    try { process.kill(pid, 'SIGKILL'); } catch { /* ignore */ }
+  }
+}
+
 /**
  * Spawn one headless worker. Resolves with { exitCode, result, events, stderr }.
  * onEvent(ev) is called for every parsed stream-json line as it arrives.
+ * Hard wall-clock cap (timeoutMs): a worker that exceeds it is tree-killed and resolved as timedOut,
+ * so a single hung worker (e.g. a runaway test) can never wedge the whole cycle.
  */
 export function spawnWorker({
   cwd,
@@ -26,6 +40,7 @@ export function spawnWorker({
   permissionMode = 'acceptEdits',
   settingsPath = null,
   onEvent = () => {},
+  timeoutMs = BUDGETS.workerTimeoutMs ?? 12 * 60 * 1000,
 }) {
   const env = { ...process.env };
   for (const k of STRIP_ENV) delete env[k];
@@ -51,8 +66,29 @@ export function spawnWorker({
     const events = [];
     let result = null;
     let stderr = '';
+    let settled = false;
+    let timer = null;
 
     const rl = readline.createInterface({ input: child.stdout });
+
+    const finish = (res) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      try { rl.close(); } catch { /* ignore */ }
+      resolve(res);
+    };
+
+    // Hard wall-clock cap: a hung worker is tree-killed so the cycle can't wedge (see killTree).
+    timer = setTimeout(() => {
+      killTree(child.pid);
+      finish({
+        exitCode: -2, result, events, timedOut: true,
+        stderr: stderr + `\n[worker killed: exceeded ${Math.round(timeoutMs / 1000)}s wall-clock cap]`,
+      });
+    }, timeoutMs);
+    if (timer.unref) timer.unref();
+
     rl.on('line', (line) => {
       const s = line.trim();
       if (!s) return;
@@ -64,7 +100,7 @@ export function spawnWorker({
     });
 
     child.stderr.on('data', (d) => { stderr += d.toString(); });
-    child.on('error', (err) => resolve({ exitCode: -1, result: null, events, stderr: String(err) }));
-    child.on('close', (code) => { rl.close(); resolve({ exitCode: code, result, events, stderr }); });
+    child.on('error', (err) => finish({ exitCode: -1, result: null, events, stderr: String(err) }));
+    child.on('close', (code) => finish({ exitCode: code, result, events, stderr }));
   });
 }

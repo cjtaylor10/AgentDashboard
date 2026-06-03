@@ -89,6 +89,7 @@ export const BUDGETS = {
   usdPerDay: 200.0,
   maxSpawnDepth: 3,
   maxConcurrentAgents: 6,
+  workerTimeoutMs: 12 * 60 * 1000, // wall-clock cap per worker; kills a hung worker (e.g. a runaway test) so a cycle can't wedge
 };
 
 export function ensureDirs() {
