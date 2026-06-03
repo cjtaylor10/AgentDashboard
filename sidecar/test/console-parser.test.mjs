@@ -1,4 +1,4 @@
-import { workerEventToLine, computeMetrics } from '../src/server.js';
+import { workerEventToLine, computeMetrics, selectVisibleAgents } from '../src/server.js';
 
 let failed = false;
 
@@ -48,6 +48,18 @@ assert('user payload yields null', workerEventToLine(userEv) === null);
 const m = computeMetrics({ spendUsd: 1, runs: 4, ticketsTotal: 2, ticketsDone: 1 });
 assert('computeMetrics costPerRun === 0.25', m.costPerRun === 0.25);
 assert('computeMetrics ticketsDone === 1', m.ticketsDone === 1);
+
+// selectVisibleAgents: caps at 16 by default
+const capped = selectVisibleAgents(Array.from({ length: 20 }, () => ({ status: 'idle' })));
+assert('selectVisibleAgents caps 20 idle agents to 16', capped.length === 16);
+
+// selectVisibleAgents: working agents first, respects custom cap
+const mixed = selectVisibleAgents(
+  [{ status: 'working', id: 'w' }, ...Array.from({ length: 19 }, () => ({ status: 'idle' }))],
+  3
+);
+assert('selectVisibleAgents result length === 3 with cap=3', mixed.length === 3);
+assert('selectVisibleAgents working agent is first', mixed[0].status === 'working');
 
 if (!failed) {
   console.log('PASS');

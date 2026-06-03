@@ -12,6 +12,12 @@ const webDir = path.join(sidecarDir, 'web');
 const PORT = Number(process.env.COCKPIT_PORT || 4317);
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
+export function selectVisibleAgents(agents, cap = 16) {
+  const working = agents.filter(a => a.status === 'working');
+  const others = agents.filter(a => a.status !== 'working');
+  return [...working, ...others].slice(0, cap);
+}
+
 export function computeMetrics({ spendUsd, runs, ticketsTotal, ticketsDone }) {
   return {
     spendUsd,
@@ -96,12 +102,17 @@ function snapshot(db) {
   const ticketTotal = db.prepare('SELECT COUNT(*) AS total FROM ticket').get();
   const ticketDone = db.prepare("SELECT COUNT(*) AS done FROM ticket WHERE kanban_column='Done'").get();
 
+  const allAgents = db.prepare('SELECT id, role, reports_to, status, current_action, model FROM agent ORDER BY role, id').all();
+  const agentTotal = allAgents.length;
+  const agents = selectVisibleAgents(allAgents, 16);
+
   return {
     goal,
     killSwitch: { engaged: ks.engaged === 1, reason: ks.reason || null },
     spend: { usd: sp.usd, runs: sp.runs, capCycle: BUDGETS.usdPerCycle, capDay: BUDGETS.usdPerDay },
     cycleState: cyc ? cyc.type.replace('cycle.', '') : null,
-    agents: db.prepare('SELECT id, role, reports_to, status, current_action, model FROM agent ORDER BY role, id').all(),
+    agentTotal,
+    agents,
     tickets: db.prepare('SELECT id, subject, status, kanban_column FROM ticket ORDER BY created_ts').all(),
     changes: db.prepare('SELECT id, category, state, summary, author_agent_id FROM change_request ORDER BY created_ts DESC').all(),
     approvals: db.prepare('SELECT change_id, approver_agent_id, decision, reason FROM approval ORDER BY ts DESC').all(),
