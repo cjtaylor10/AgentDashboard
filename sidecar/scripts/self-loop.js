@@ -40,10 +40,20 @@ function sidecarJsFiles() {
   return out;
 }
 
-function firstBrokenFile() {
+function verifyBuild() {
+  // 1) syntax-check every sidecar JS file
   for (const f of sidecarJsFiles()) {
     try { execFileSync('node', ['--check', f], { stdio: 'ignore' }); }
-    catch { return f; }
+    catch { return 'syntax:' + path.basename(f); }
+  }
+  // 2) run every accumulated test (regression gate against prior self-improvements)
+  const testDir = path.join(paths.root, 'sidecar', 'test');
+  if (fs.existsSync(testDir)) {
+    for (const f of fs.readdirSync(testDir)) {
+      if (!f.endsWith('.test.mjs')) continue;
+      try { execFileSync('node', [path.join(testDir, f)], { stdio: 'ignore' }); }
+      catch { return 'test:' + f; }
+    }
   }
   return null;
 }
@@ -73,11 +83,11 @@ async function main() {
       summary.push({ item: i + 1, result: 'withheld' });
       continue;
     }
-    const broken = firstBrokenFile();
+    const broken = verifyBuild();
     if (broken) {
-      console.error('  -> MERGED but node --check FAILED on', path.basename(broken), '— HARD REVERT + STOP');
+      console.error('  -> MERGED but verification FAILED (' + broken + ') — HARD REVERT + STOP');
       git(['reset', '--hard', before]);
-      summary.push({ item: i + 1, result: 'reverted', broken: path.basename(broken) });
+      summary.push({ item: i + 1, result: 'reverted', broken });
       break;
     }
     const after = git(['rev-parse', 'HEAD']).slice(0, 7);
