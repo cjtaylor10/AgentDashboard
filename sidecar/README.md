@@ -24,6 +24,7 @@ scripts/
 ```sh
 npm run prove           # spine: spawn 1 worker -> events into SQLite -> read back
 npm run prove:enforce   # chokepoint: work reaches master ONLY via an authorized approval
+npm run cycle           # full council cycle: goal -> plan -> build -> test -> audit -> gated merge
 npm run reset           # wipe runtime state (workspace, worktrees, db) for a clean slate
 ```
 
@@ -31,11 +32,14 @@ Each spawns one real (small, budget-capped) model call. Override the worker bina
 
 ## Status
 
-P1 in progress. **Proven in running code:**
+**P1 — the headless MVP — runs.** Proven in running code:
 - the **spine** — `prove-spine.js`: spawn → isolate (git worktree) → persist (event log) → query back.
 - the **enforcement chokepoint** — `prove-enforcement.js`: no-approval merge blocked; author self-approval
   blocked by separation-of-duties; authorized approval merged by the sidecar; a worker cannot self-merge
   (Layer-B PreToolUse hook + Layer-A sidecar-owned merge).
+- the **council loop** — `run-cycle.js`: one goal taken GOAL_INTAKE → PLAN → TICKET → ASSIGN → DEV → TEST
+  → AUDIT → CHANGE_APPROVAL → GOAL_REALIGN by 4 role agents (Planner/Driver, Developer, outcome-based
+  Tester, independent Auditor), with budget + kill-switch checks before every model call.
 
-Next: the council-loop FSM (PLAN → TICKET → ASSIGN → DEV → TEST → AUDIT → CHANGE_APPROVAL → GOAL_REALIGN)
-wiring the 4 MVP roles (Planner/Driver, Developer, Auditor, Tester) around the spine + the gate.
+Next (P2): the Tauri cockpit + embedded terminal as read models over this same spine (live org chart,
+kanban, change board, streaming audit, PAUSE-ALL). Then cycle-to-cycle rollover + the remaining roles.
