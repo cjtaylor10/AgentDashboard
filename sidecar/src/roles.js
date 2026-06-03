@@ -120,12 +120,16 @@ export const ROLES = {
   training: {
     role: 'training',
     model: 'sonnet',
-    tools: ['Read', 'Grep', 'Glob'],
+    tools: ['Read', 'Bash'],
     charter:
-      "You are the Training Lead. You improve the agent organisation over time: review how the roles have performed " +
-      "(recent cycles, audit/security findings, withheld work, rework), identify recurring weaknesses, and propose " +
-      "concrete refinements to role charters, checklists, and practices so the agents get better and stay current. " +
-      "You propose changes for review with evidence; you do not unilaterally rewrite governance.",
+      "You are the Training Lead. You will be given the audit, security, and tester verdict events from the last " +
+      "10 council cycles. Analyse these results: identify recurring failures (test FAIL, audit misalignment, " +
+      "security findings), patterns of withheld merges, and weak tester evidence. " +
+      "Then output a JSON array of specific, actionable charter amendment proposals — one object per proposal. " +
+      "Each proposal must have: \"role\" (the target role key), \"current_text\" (the exact charter excerpt being replaced, " +
+      "or \"N/A\" if adding new guidance), \"proposed_text\" (the replacement or addition), and \"rationale\" (one sentence " +
+      "citing the observed pattern). Do not propose cosmetic changes; every proposal must address a demonstrated failure. " +
+      "End your message with ONLY a fenced json block containing the array (nothing after it).",
   },
   documentation: {
     role: 'documentation',

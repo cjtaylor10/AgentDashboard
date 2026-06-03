@@ -12,6 +12,7 @@ import { execFileSync } from 'node:child_process';
 import { paths, ensureDirs, claudeExists, CLAUDE_BIN } from '../src/config.js';
 import { openDb } from '../src/db.js';
 import { runCycle } from '../src/loop.js';
+import { runTrainingReview } from '../src/training.js';
 
 const targetRepo = paths.root;
 const worktreesDir = path.join(os.tmpdir(), 'agentdash-self-wt');
@@ -77,6 +78,9 @@ async function main() {
     let r;
     try { r = await runCycle(db, { goalText: backlog[i], targetRepo, worktreesDir }); }
     catch (e) { console.error('  cycle error:', e.message); summary.push({ item: i + 1, result: 'error', note: e.message }); break; }
+
+    try { await runTrainingReview(db); console.log('  -> training review written to sidecar/data/policy-refinements.json'); }
+    catch (e) { console.warn('  -> training review failed (non-fatal):', e.message); }
 
     if (!r.merged) {
       console.log(`  -> WITHHELD by the gate (testPass=${r.testPass}, aligned=${r.aligned}, clean=${r.clean}) — continuing`);
