@@ -12,7 +12,7 @@ const webDir = path.join(sidecarDir, 'web');
 const PORT = Number(process.env.COCKPIT_PORT || 4317);
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
-function workerEventToLine(ev) {
+export function workerEventToLine(ev) {
   // Reduce a worker.* event row to a short human-readable text line.
   // Columns available: id, ts, type, agent_id, payload_json
   const agent = ev.agent_id ? `[${ev.agent_id}] ` : '';
@@ -21,7 +21,15 @@ function workerEventToLine(ev) {
     if (ev.payload_json) {
       const p = JSON.parse(ev.payload_json);
       // prefer assistant text content
-      if (p.type === 'content_block_delta' && p.delta?.type === 'text_delta' && p.delta.text) {
+      if (p.type === 'assistant' && Array.isArray(p.message?.content)) {
+        const txt = p.message.content
+          .filter(b => b.type === 'text')
+          .map(b => b.text)
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        body = txt.length > 120 ? txt.slice(0, 117) + '...' : txt;
+      } else if (p.type === 'content_block_delta' && p.delta?.type === 'text_delta' && p.delta.text) {
         const txt = p.delta.text.replace(/\n/g, ' ').trim();
         body = txt.length > 120 ? txt.slice(0, 117) + '...' : txt;
       } else if (p.type === 'tool_use' && p.name) {
