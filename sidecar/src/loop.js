@@ -142,7 +142,7 @@ export async function runCycle(db, { goalText, targetRepo = paths.workspace, wor
     prompt: "First state, in one sentence, the outcome you EXPECT if this ticket was done correctly. THEN verify — do not rubber-stamp.\n\nGOAL: " + goalText +
       "\nDONE WHEN: " + (t.done_criteria ?? '') + "\nTESTER REPORTED: " + JSON.stringify(test.json ?? {}) +
       "\n\nGIT DIFF (what was actually built):\n" + (diff || '(empty diff)') +
-      "\n\nDoes the diff actually satisfy the done_criteria, and does the tester's evidence support PASS?" +
+      "\n\nDoes the diff actually satisfy the done_criteria, and does the tester's evidence support PASS? Judge ALIGNMENT TO THE GOAL, not diff size or style: answer 'match' (aligned=true) when the work satisfies the goal's intent and the done_criteria — even if the change is large, heavily refactors, or takes a different-but-valid approach. Use 'deviation' ONLY if it fails the done_criteria, omits something required, or does substantial work the goal did not request." +
       jsonSuffix('{"expected":"...","planned_vs_built":"match|deviation","aligned":true,"findings":["..."],"verdict":"approve_recommended|reopen"}'),
   });
   const aligned = audit.json?.aligned === true && audit.json?.planned_vs_built !== 'deviation';
