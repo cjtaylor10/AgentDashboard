@@ -20,15 +20,15 @@ function renderStepper(cycleState) {
 const INDEPENDENT_ROLES = new Set(['auditor', 'security', 'compliance']);
 
 function buildOrgTree(agents) {
-  const byId = {};
-  const byRole = {};
+  const byId = Object.create(null);
+  const byRole = Object.create(null);
   for (const a of agents) {
     byId[a.id] = a;
     const rk = (a.role || '').toLowerCase();
     if (!byRole[rk]) byRole[rk] = a;
   }
 
-  const childrenOf = {};
+  const childrenOf = Object.create(null);
   const assigned = new Set();
   for (const a of agents) {
     const mgr = a.reports_to;
@@ -80,8 +80,8 @@ function render(s) {
     const { costPerRun, runs, ticketsDone, ticketsTotal } = s.metrics;
     const chips = [];
     if (costPerRun != null) chips.push(`<span class="metric-chip">$${Number(costPerRun).toFixed(3)}/run</span>`);
-    if (runs != null) chips.push(`<span class="metric-chip">${runs} runs</span>`);
-    if (ticketsDone != null && ticketsTotal != null) chips.push(`<span class="metric-chip">${ticketsDone}/${ticketsTotal} tickets</span>`);
+    if (runs != null) chips.push(`<span class="metric-chip">${Number(runs)} runs</span>`);
+    if (ticketsDone != null && ticketsTotal != null) chips.push(`<span class="metric-chip">${Number(ticketsDone)}/${Number(ticketsTotal)} tickets</span>`);
     mc.innerHTML = chips.join('');
   }
 
