@@ -50,41 +50,69 @@ export function shortId(id) {
 }
 
 export function workerEventToLine(ev) {
-  // Reduce a worker.* event row to a short human-readable text line.
+  // Reduce a worker.* event row (or raw event object) to a short human-readable text line.
   // Returns null for noisy framing events that clutter the console.
-  // Columns available: id, ts, type, agent_id, payload_json
+  // Accepts either a DB row with payload_json or a raw event object directly.
   const agent = ev.agent_id ? `[${ev.agent_id}] ` : '';
   let body = '';
   try {
-    if (ev.payload_json) {
-      const p = JSON.parse(ev.payload_json);
-      // Drop framing / meta events entirely
-      if (p.type === 'system' || p.type === 'user' || p.type === 'rate_limit_event') return null;
-      // prefer assistant text content
-      if (p.type === 'assistant' && Array.isArray(p.message?.content)) {
-        const txt = p.message.content
-          .filter(b => b.type === 'text')
-          .map(b => b.text)
-          .join(' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        if (!txt) return null;
-        body = truncate(txt, 120);
-      } else if (p.type === 'result') {
-        // result events with no text body are noise
-        const txt = (typeof p.text === 'string' ? p.text : '').trim();
-        if (!txt) return null;
-        body = truncate(txt, 120);
-      } else if (p.type === 'content_block_delta' && p.delta?.type === 'text_delta' && p.delta.text) {
-        const txt = p.delta.text.replace(/\n/g, ' ').trim();
-        body = truncate(txt, 120);
-      } else if (p.type === 'tool_use' && p.name) {
-        body = `tool: ${p.name}`;
-      } else if (p.name) {
-        body = `tool: ${p.name}`;
-      } else if (p.type) {
-        body = p.type;
+    // Support both DB rows (with payload_json) and raw event objects passed directly
+    const p = ev.payload_json ? JSON.parse(ev.payload_json) : ev;
+    // Drop framing / meta events entirely
+    if (p.type === 'system' || p.type === 'user' || p.type === 'rate_limit_event') return null;
+    // prefer assistant text content
+    if (p.type === 'assistant' && Array.isArray(p.message?.content)) {
+      const txt = p.message.content
+        .filter(b => b.type === 'text')
+        .map(b => b.text)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (!txt) return null;
+      body = truncate(txt, 120);
+    } else if (p.type === 'result') {
+      // result events with no text body are noise
+      const txt = (typeof p.text === 'string' ? p.text : '').trim();
+      if (!txt) return null;
+      body = truncate(txt, 120);
+    } else if (p.type === 'content_block_delta' && p.delta?.type === 'text_delta' && p.delta.text) {
+      const txt = p.delta.text.replace(/\n/g, ' ').trim();
+      body = truncate(txt, 120);
+    } else if (p.type === 'tool_use' && p.name) {
+      switch (p.name) {
+        case 'Bash':
+          body = 'bash: ' + truncate(String(p.input?.command ?? ''), 120);
+          break;
+        case 'Edit':
+          body = 'edit: ' + (p.input?.file_path ?? '');
+          break;
+        case 'Write':
+          body = 'write: ' + (p.input?.file_path ?? '');
+          break;
+        case 'Read':
+          body = 'read: ' + (p.input?.file_path ?? '');
+          break;
+        case 'Glob':
+          body = 'glob: ' + (p.input?.pattern ?? '');
+          break;
+        case 'Grep':
+          body = 'grep: ' + (p.input?.pattern ?? '');
+          break;
+        default: {
+          const firstKey = p.input ? Object.keys(p.input)[0] : null;
+          const firstVal = firstKey != null ? p.input[firstKey] : '';
+          body = `tool/${p.name}: ` + String(firstVal ?? '');
+        }
       }
+    } else if (p.type === 'tool_result') {
+      if (typeof p.content === 'string' && p.content.length > 0) {
+        return '→ ' + p.content.slice(0, 120);
+      }
+      return null;
+    } else if (p.name) {
+      body = `tool: ${p.name}`;
+    } else if (p.type) {
+      body = p.type;
     }
   } catch { /* ignore parse errors */ }
   if (!body) body = (ev.type || '').replace('worker.', '');
