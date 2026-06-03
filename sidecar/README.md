@@ -25,6 +25,8 @@ scripts/
 npm run prove           # spine: spawn 1 worker -> events into SQLite -> read back
 npm run prove:enforce   # chokepoint: work reaches master ONLY via an authorized approval
 npm run cycle           # full council cycle: goal -> plan -> build -> test -> audit -> gated merge
+npm run self-cycle "G"  # SELF-DEVELOPMENT: target the harness's OWN repo (gated merge into itself)
+npm run self-loop       # run a backlog of self-improvements in a loop, with a node --check revert gate
 npm run cockpit         # live dashboard at http://localhost:4317 (watch the org work; PAUSE-ALL)
 npm run reset           # wipe runtime state (workspace, worktrees, db) for a clean slate
 ```

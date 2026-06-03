@@ -12,6 +12,7 @@
     "prove:enforce": "node --no-warnings scripts/prove-enforcement.js",
     "cycle": "node --no-warnings scripts/run-cycle.js",
     "self-cycle": "node --no-warnings scripts/self-cycle.js",
+    "self-loop": "node --no-warnings scripts/self-loop.js",
     "cockpit": "node --no-warnings scripts/cockpit.js",
     "reset": "node --no-warnings scripts/reset.js"
   }
