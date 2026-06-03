@@ -1,4 +1,4 @@
-import { workerEventToLine } from '../src/server.js';
+import { workerEventToLine, computeMetrics } from '../src/server.js';
 
 let failed = false;
 
@@ -43,6 +43,11 @@ const userEv = {
   payload_json: JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'x' }] } })
 };
 assert('user payload yields null', workerEventToLine(userEv) === null);
+
+// computeMetrics
+const m = computeMetrics({ spendUsd: 1, runs: 4, ticketsTotal: 2, ticketsDone: 1 });
+assert('computeMetrics costPerRun === 0.25', m.costPerRun === 0.25);
+assert('computeMetrics ticketsDone === 1', m.ticketsDone === 1);
 
 if (!failed) {
   console.log('PASS');
