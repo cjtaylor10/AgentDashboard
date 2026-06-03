@@ -276,6 +276,18 @@ function render(s) {
     renderChat(s.console || []);
   }
 
+  // overview console strip — last 8 lines of agent output
+  const overviewConsoleSig = JSON.stringify(s.console);
+  if (overviewConsoleSig !== lastSig.overviewConsole) {
+    lastSig.overviewConsole = overviewConsoleSig;
+    const el = $('overview-console');
+    if (el) {
+      const lines = (s.console || []).join('\n').split('\n');
+      el.textContent = lines.slice(-8).join('\n');
+      el.scrollTop = el.scrollHeight;
+    }
+  }
+
   // ideas list
   const ideasSig = JSON.stringify(s.ideas);
   if (ideasSig !== lastSig.ideas) {
