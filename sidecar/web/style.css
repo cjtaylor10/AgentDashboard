@@ -749,13 +749,56 @@ body { padding-left: var(--nav-w); }
 .hidden { display: none !important; }
 body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
 
-/* ── Cycle stepper ───────────────────────────────────────────────── */
-.step-bar {
-  padding: var(--sp-3) var(--sp-6);
-  background: rgba(14,21,32,.70);
+/* ── Hero strip ──────────────────────────────────────────────────── */
+.hero-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-7);
+  padding: var(--sp-5) var(--sp-6);
+  background: linear-gradient(135deg, rgba(70,130,180,.09) 0%, rgba(70,130,180,.04) 100%);
   border-bottom: 1px solid var(--border-subtle);
 }
 
+.hero-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hero-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.hero-phase {
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--primary-light);
+  letter-spacing: -.5px;
+  line-height: 1;
+}
+
+.hero-working {
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: -.5px;
+  line-height: 1;
+}
+
+.hero-divider {
+  width: 1px;
+  height: 44px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* ── Cycle stepper ───────────────────────────────────────────────── */
 .cycle-steps {
   display: flex;
   align-items: center;
@@ -764,6 +807,13 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   scrollbar-width: none;
 }
 .cycle-steps::-webkit-scrollbar { display: none; }
+
+/* Variant: cycle steps rendered inside the Org panel */
+.cycle-steps--panel {
+  padding: var(--sp-2) var(--sp-5);
+  background: rgba(14,21,32,.45);
+  border-bottom: 1px solid var(--border-subtle);
+}
 
 .step {
   display: inline-flex;

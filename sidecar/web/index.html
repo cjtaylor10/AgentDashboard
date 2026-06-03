@@ -52,29 +52,15 @@
 
     <!-- ═══════════════════════════ OVERVIEW ═════════════════════════ -->
     <section class="page" data-section="overview">
-      <div class="step-bar">
-        <div id="cyclesteps" class="cycle-steps">
-          <span class="step step--pending" data-phase="goal_intake"><span class="step-pill">goal_intake</span></span>
-          <span class="step-sep">&#x203A;</span>
-          <span class="step step--pending" data-phase="plan"><span class="step-pill">plan</span></span>
-          <span class="step-sep">&#x203A;</span>
-          <span class="step step--pending" data-phase="ticket"><span class="step-pill">ticket</span></span>
-          <span class="step-sep">&#x203A;</span>
-          <span class="step step--pending" data-phase="assign"><span class="step-pill">assign</span></span>
-          <span class="step-sep">&#x203A;</span>
-          <span class="step step--pending" data-phase="dev_done"><span class="step-pill">dev_done</span></span>
-          <span class="step-sep">&#x203A;</span>
-          <span class="step step--pending" data-phase="test"><span class="step-pill">test</span></span>
-          <span class="step-sep">&#x203A;</span>
-          <span class="step step--pending" data-phase="audit"><span class="step-pill">audit</span></span>
-          <span class="step-sep">&#x203A;</span>
-          <span class="step step--pending" data-phase="security"><span class="step-pill">security</span></span>
-          <span class="step-sep">&#x203A;</span>
-          <span class="step step--pending" data-phase="change_approval"><span class="step-pill">change_approval</span></span>
-          <span class="step-sep">&#x203A;</span>
-          <span class="step step--pending" data-phase="goal_realign"><span class="step-pill">goal_realign</span></span>
-          <span class="step-sep">&#x203A;</span>
-          <span class="step step--pending" data-phase="stop"><span class="step-pill">stop</span></span>
+      <div id="hero-strip" class="hero-strip">
+        <div class="hero-item">
+          <span class="hero-label">Current Phase</span>
+          <span id="hero-phase" class="hero-phase">&#x2014;</span>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="hero-item">
+          <span class="hero-label">Agents Working</span>
+          <span id="hero-working" class="hero-working">0</span>
         </div>
       </div>
       <main class="cockpit cockpit--overview">
@@ -83,6 +69,29 @@
             <h2 class="panel-title">Org</h2>
             <span id="agentsSub" class="panel-sub">who&#x27;s doing what now</span>
           </header>
+          <div id="cyclesteps" class="cycle-steps cycle-steps--panel">
+            <span class="step step--pending" data-phase="goal_intake"><span class="step-pill">goal_intake</span></span>
+            <span class="step-sep">&#x203A;</span>
+            <span class="step step--pending" data-phase="plan"><span class="step-pill">plan</span></span>
+            <span class="step-sep">&#x203A;</span>
+            <span class="step step--pending" data-phase="ticket"><span class="step-pill">ticket</span></span>
+            <span class="step-sep">&#x203A;</span>
+            <span class="step step--pending" data-phase="assign"><span class="step-pill">assign</span></span>
+            <span class="step-sep">&#x203A;</span>
+            <span class="step step--pending" data-phase="dev_done"><span class="step-pill">dev_done</span></span>
+            <span class="step-sep">&#x203A;</span>
+            <span class="step step--pending" data-phase="test"><span class="step-pill">test</span></span>
+            <span class="step-sep">&#x203A;</span>
+            <span class="step step--pending" data-phase="audit"><span class="step-pill">audit</span></span>
+            <span class="step-sep">&#x203A;</span>
+            <span class="step step--pending" data-phase="security"><span class="step-pill">security</span></span>
+            <span class="step-sep">&#x203A;</span>
+            <span class="step step--pending" data-phase="change_approval"><span class="step-pill">change_approval</span></span>
+            <span class="step-sep">&#x203A;</span>
+            <span class="step step--pending" data-phase="goal_realign"><span class="step-pill">goal_realign</span></span>
+            <span class="step-sep">&#x203A;</span>
+            <span class="step step--pending" data-phase="stop"><span class="step-pill">stop</span></span>
+          </div>
           <div id="agents" class="agents"></div>
         </section>
         <section class="panel panel-feed">
