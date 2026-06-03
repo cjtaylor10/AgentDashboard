@@ -368,8 +368,8 @@ function renderCouncil(snapshot) {
       const isInd = INDEPENDENT_ROLES.has((r.role || '').toLowerCase());
       const indTag = isInd ? '<span class="agent-tag-independent">INDEPENDENT</span>' : '';
       const budget = r.maxBudgetUsd ? `<span class="role-meta">$${esc(String(r.maxBudgetUsd))}/run</span>` : '';
-      const liveTag = live.length
-        ? `<span class="role-live">${live.length} active</span>`
+      const liveTag = working
+        ? `<span class="role-live">${working} active</span>`
         : '<span class="role-live role-live--idle">idle</span>';
       const tools = (r.tools || []).map((t) => `<span class="role-tool">${esc(t)}</span>`).join('');
       return `<div class="council-role">
