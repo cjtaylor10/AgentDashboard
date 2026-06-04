@@ -1399,6 +1399,58 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   word-break: break-word;
 }
 
+/* ── Hero idle summary bar ───────────────────────────────────────────── */
+.hero-idle-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-5);
+  background: rgba(7,13,22,.20);
+  border-bottom: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: .25px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-wrap: wrap;
+}
+.hero-idle-summary::-webkit-scrollbar { display: none; }
+.his-lbl {
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-right: 2px;
+}
+.his-val {
+  color: var(--primary-light);
+  opacity: .75;
+}
+.his-sep {
+  color: var(--border);
+  padding: 0 var(--sp-1);
+  user-select: none;
+}
+
+/* ── Hero phase: idle variant (smaller, muted) ───────────────────────── */
+.hero-phase--idle .hero-phase-text {
+  font-size: 18px;
+  letter-spacing: 0;
+  color: var(--text-muted);
+  text-shadow: none;
+  opacity: .80;
+}
+
+/* ── Cycle steps: idle dimmed state ──────────────────────────────────── */
+.cycle-steps--idle .step-pill {
+  opacity: .18 !important;
+  filter: saturate(0);
+}
+.cycle-steps--idle .step-sep {
+  opacity: .18;
+}
+
 /* ── Step upcoming ───────────────────────────────────────────────────── */
 .step--upcoming .step-pill {
   background: transparent;

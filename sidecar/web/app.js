@@ -7,6 +7,7 @@ const KANBAN = ['Backlog', 'Todo', 'In Progress', 'In Review', 'Blocked', 'Done'
 const PHASES = ['goal_intake','plan','ticket','assign','dev_done','test','audit','security','change_approval','goal_realign','stop'];
 
 const lastSig = {};
+let _lastTerminalCycleState = null;
 
 // ── Page routing ──────────────────────────────────────────────────
 let activePage = 'overview';
@@ -106,6 +107,28 @@ async function fetchInsights() {
     renderTrainingProposals(Array.isArray(d.trainingProposals) ? d.trainingProposals : []);
     renderResearchBriefs(Array.isArray(d.researchBriefs) ? d.researchBriefs : []);
   } catch { /* offline */ }
+}
+
+// ── Idle summary renderer ─────────────────────────────────────────
+function renderIdleSummary(s) {
+  const el = $('hero-idle-summary');
+  if (!el) return;
+  const idle = !s.cycleState || s.cycleState === 'stop';
+  if (!idle) { el.classList.add('hidden'); return; }
+  const runs = s.spend?.runs ?? 0;
+  const usd = (s.spend?.usd || 0).toFixed(4);
+  const td = s.metrics?.ticketsDone;
+  const tt = s.metrics?.ticketsTotal;
+  const tickets = (td != null && tt != null) ? `${td}/${tt}` : '\u2014';
+  const cycleInfo = s.cycleState === 'stop' ? 'stop' : (_lastTerminalCycleState || null);
+  const parts = [
+    `<span class="his-lbl">Runs</span><span class="his-val">${runs}</span>`,
+    `<span class="his-lbl">Spend</span><span class="his-val">$${usd}</span>`,
+    `<span class="his-lbl">Tickets</span><span class="his-val">${esc(tickets)}</span>`,
+  ];
+  if (cycleInfo) parts.push(`<span class="his-lbl">Last</span><span class="his-val">${esc(cycleInfo)}</span>`);
+  el.innerHTML = parts.join('<span class="his-sep"> · </span>');
+  el.classList.remove('hidden');
 }
 
 // ── Stepper ───────────────────────────────────────────────────────
@@ -208,17 +231,19 @@ function render(s) {
     btn.className = 'btn ' + (killed ? 'btn-ok' : 'btn-danger');
     document.body.classList.toggle('paused', killed);
     $('pausedBanner').classList.toggle('hidden', !killed);
+    renderIdleSummary(s);
   }
 
   // stepper + hero phase
   const stepperSig = JSON.stringify(s.cycleState);
   if (stepperSig !== lastSig.stepper) {
     lastSig.stepper = stepperSig;
+    if (s.cycleState) _lastTerminalCycleState = s.cycleState;
     renderStepper(s.cycleState);
     const heroPhase = $('hero-phase');
     if (heroPhase) {
       const idle = !s.cycleState || s.cycleState === 'stop';
-      const newText = idle ? '\u2014' : s.cycleState;
+      const newText = idle ? 'Idle \u2014 awaiting next goal' : s.cycleState;
       const textEl = heroPhase.querySelector('.hero-phase-text');
       const liveDot = heroPhase.querySelector('.live-dot');
       const curText = textEl ? textEl.textContent : heroPhase.textContent;
@@ -229,8 +254,15 @@ function render(s) {
         void heroPhase.offsetWidth;
         heroPhase.classList.add('hero-phase--changing');
       }
+      heroPhase.classList.toggle('hero-phase--idle', idle);
       if (liveDot) liveDot.classList.toggle('live-dot--active', !idle);
     }
+    const stepsEl = $('cyclesteps');
+    if (stepsEl) {
+      const idle = !s.cycleState || s.cycleState === 'stop';
+      stepsEl.classList.toggle('cycle-steps--idle', idle);
+    }
+    renderIdleSummary(s);
   }
 
   // org — council reporting hierarchy tree + hero working count
