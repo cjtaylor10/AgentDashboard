@@ -114,7 +114,6 @@ body {
   padding: var(--sp-2) var(--sp-4);
   border-bottom: 1px solid var(--border-subtle);
   background: linear-gradient(180deg, rgba(28,43,61,.30) 0%, transparent 100%);
-  overflow: hidden;
   min-width: 0;
 }
 
@@ -134,7 +133,6 @@ body {
   padding: var(--sp-2) var(--sp-4);
   border-bottom: 1px solid var(--border);
   background: rgba(7,13,22,.35);
-  overflow: hidden;
   flex-wrap: wrap;
   min-width: 0;
 }
@@ -442,7 +440,6 @@ body { padding-left: var(--nav-w); }
 .overview-terminal-panel {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .terminal--hero {
@@ -469,48 +466,16 @@ body { padding-left: var(--nav-w); }
   max-height: 210px;
 }
 
-/* ── Board layout ────────────────────────────────────────────────── */
-.cockpit--board {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-  padding: var(--sp-4) var(--sp-5);
-}
-
-/* ── Council layout ──────────────────────────────────────────────── */
-.cockpit--council {
-  padding: var(--sp-4) var(--sp-5);
-}
-
-/* ── Chat layout ─────────────────────────────────────────────────── */
-.cockpit--chat {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-  padding: var(--sp-4) var(--sp-5);
-}
-
-/* ── Ideas layout ────────────────────────────────────────────────── */
-.cockpit--ideas {
-  padding: var(--sp-4) var(--sp-5);
-}
-
-/* ── Docs layout ─────────────────────────────────────────────────── */
-.cockpit--docs {
-  padding: var(--sp-4) var(--sp-5);
-}
-
-/* ── Cycles layout ───────────────────────────────────────────────── */
-.cockpit--cycles {
-  padding: var(--sp-4) var(--sp-5);
-}
+/* ── Non-overview cockpit variants: inherit flex-column layout from .cockpit ── */
+/* Board, Council, Chat, Ideas, Docs, Cycles all use the .cockpit base layout.
+   These selectors remain as hooks for future page-specific overrides. */
 
 /* ── Panels ──────────────────────────────────────────────────────── */
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  overflow: hidden;
+  overflow: clip;          /* clips border-radius without creating scroll container */
   box-shadow: var(--shadow-md);
 }
 
@@ -710,6 +675,7 @@ body { padding-left: var(--nav-w); }
   opacity: .70;
 }
 .card-sub {
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-faint);
   margin-top: var(--sp-1);
@@ -790,7 +756,7 @@ body { padding-left: var(--nav-w); }
   gap: 1px;
   max-height: 360px;
   overflow-y: auto;
-  padding: var(--sp-2) var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
 }
 
 .ev {
@@ -995,7 +961,7 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .metric-chip {
@@ -1189,7 +1155,7 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
 }
 
 /* ── Ideas page ──────────────────────────────────────────────────── */
-.ideas-panel { max-width: 680px; }
+.ideas-panel { max-width: 1140px; }
 
 .ideas-compose {
   padding: var(--sp-4);
@@ -1280,8 +1246,17 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   border-radius: 0 var(--r-sm) var(--r-sm) 0;
 }
 
+/* Cycles page: metadata row (duration, timestamp) */
+.cycle-item-meta {
+  margin-top: var(--sp-1);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: .2px;
+}
+
 /* ── Docs page ───────────────────────────────────────────────────── */
-.docs-panel { max-width: 680px; }
+.docs-panel { max-width: 1140px; }
 
 .docs-body {
   padding: var(--sp-4);
@@ -1340,11 +1315,23 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   border-bottom: 1px solid var(--border-subtle);
 }
 .docs-insight-title {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: .8px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--primary-light);
+  position: relative;
+  padding-left: var(--sp-3);
+}
+.docs-insight-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1px;
+  bottom: 1px;
+  width: 2px;
+  border-radius: var(--r-full);
+  background: var(--primary);
 }
 .docs-insight-sub {
   font-size: 9px;
