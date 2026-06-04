@@ -21,21 +21,32 @@
         <span id="goal" class="goal-text">&#x2014;</span>
       </div>
 
-      <nav class="header-controls">
-        <div class="stat-group">
-          <span class="stat-label">Cycle</span>
-          <span id="cycleState" class="pill">&#x2014;</span>
-        </div>
-        <div class="stat-group">
-          <span class="stat-label">Spend</span>
-          <span id="spend" class="mono spend-val">$0.0000</span>
-        </div>
-        <div id="metricsChips" class="metrics-chips"></div>
+      <div class="topbar-actions">
         <button id="killBtn" class="btn btn-danger">PAUSE ALL</button>
         <span id="conn" class="conn-dot" title="SSE connection"></span>
-      </nav>
+      </div>
     </header>
 
+    <div class="metrics-strip">
+      <div class="mstat">
+        <span class="mstat-lbl">Cycle</span>
+        <span id="cycleState" class="pill">&#x2014;</span>
+      </div>
+      <span class="mstrip-sep"></span>
+      <div class="mstat">
+        <span class="mstat-lbl">Spend</span>
+        <span id="spend" class="mono mstat-val">$0.0000</span>
+      </div>
+      <div class="mstat">
+        <span class="mstat-lbl">Runs</span>
+        <span id="runs" class="mono mstat-val">0</span>
+      </div>
+      <div class="mstat">
+        <span class="mstat-lbl">Tickets</span>
+        <span id="tickets" class="mono mstat-val">&#x2014;</span>
+      </div>
+      <div id="metricsChips" class="metrics-chips"></div>
+    </div>
   </div>
 
   <nav class="page-nav" role="tablist" aria-label="Cockpit pages">

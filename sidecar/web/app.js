@@ -176,16 +176,23 @@ function render(s) {
     $('cycleState').textContent = idle ? 'idle' : s.cycleState;
 
     const usd = (s.spend.usd || 0).toFixed(4);
-    $('spend').textContent = `$${usd} / $${s.spend.capCycle}  \u00b7  ${s.spend.runs} runs`;
+    $('spend').textContent = `$${usd} / $${s.spend.capCycle}`;
+
+    const runsEl = $('runs');
+    if (runsEl) runsEl.textContent = String(s.spend.runs ?? 0);
 
     const mc = $('metricsChips');
     if (mc && s.metrics) {
-      const { costPerRun, runs, ticketsDone, ticketsTotal } = s.metrics;
+      const { costPerRun, ticketsDone, ticketsTotal } = s.metrics;
       const chips = [];
       if (costPerRun != null) chips.push(`<span class="metric-chip">$${Number(costPerRun).toFixed(3)}/run</span>`);
-      if (runs != null) chips.push(`<span class="metric-chip">${Number(runs)} runs</span>`);
-      if (ticketsDone != null && ticketsTotal != null) chips.push(`<span class="metric-chip">${Number(ticketsDone)}/${Number(ticketsTotal)} tickets</span>`);
       mc.innerHTML = chips.join('');
+      const ticketsEl = $('tickets');
+      if (ticketsEl) {
+        ticketsEl.textContent = (ticketsDone != null && ticketsTotal != null)
+          ? `${ticketsDone}/${ticketsTotal}`
+          : '\u2014';
+      }
     }
 
     const killed = s.killSwitch.engaged;
