@@ -110,10 +110,61 @@ body {
 .topbar {
   display: flex;
   align-items: center;
-  gap: var(--sp-5);
-  padding: var(--sp-3) var(--sp-5);
-  border-bottom: 1px solid var(--border);
+  gap: var(--sp-4);
+  padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--border-subtle);
   background: linear-gradient(180deg, rgba(28,43,61,.30) 0%, transparent 100%);
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ── Topbar right cluster (kill + conn) ──────────────────────────── */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-shrink: 0;
+}
+
+/* ── Metrics strip ───────────────────────────────────────────────── */
+.metrics-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  background: rgba(7,13,22,.35);
+  overflow: hidden;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.mstat {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.mstat-lbl {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.mstat-val {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mstrip-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+  flex-shrink: 0;
+  align-self: center;
 }
 
 .brand {
@@ -155,10 +206,11 @@ body {
   align-items: center;
   gap: var(--sp-2);
   padding: var(--sp-1) var(--sp-3);
-  margin: 0 var(--sp-2);
+  margin: 0 var(--sp-1);
   background: var(--surface-2);
   border: 1px solid var(--border-subtle);
   border-radius: var(--r-sm);
+  overflow: hidden;
 }
 .label {
   font-size: 9px;
@@ -178,12 +230,7 @@ body {
   white-space: nowrap;
 }
 
-.header-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-  flex-shrink: 0;
-}
+/* .header-controls removed — replaced by .topbar-actions + .metrics-strip */
 
 .stat-group {
   display: flex;
