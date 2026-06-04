@@ -122,8 +122,8 @@ function renderIdleSummary(s) {
   const tickets = (td != null && tt != null) ? `${td}/${tt}` : '\u2014';
   const cycleInfo = s.cycleState === 'stop' ? 'stop' : (_lastTerminalCycleState || null);
   const parts = [
-    `<span class="his-lbl">Runs</span><span class="his-val">${runs}</span>`,
-    `<span class="his-lbl">Spend</span><span class="his-val">$${usd}</span>`,
+    `<span class="his-lbl">Runs</span><span class="his-val">${esc(runs)}</span>`,
+    `<span class="his-lbl">Spend</span><span class="his-val">$${esc(usd)}</span>`,
     `<span class="his-lbl">Tickets</span><span class="his-val">${esc(tickets)}</span>`,
   ];
   if (cycleInfo) parts.push(`<span class="his-lbl">Last</span><span class="his-val">${esc(cycleInfo)}</span>`);
