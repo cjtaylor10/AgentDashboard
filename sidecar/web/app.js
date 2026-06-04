@@ -40,7 +40,7 @@ function renderIdeas(ideas) {
   const el = $('ideasList');
   if (!el) return;
   if (!ideas.length) {
-    el.innerHTML = '<div class="empty">no ideas yet \u2014 submit one above</div>';
+    el.innerHTML = '<div class="empty-state" data-empty-placeholder>No ideas yet.</div>';
     return;
   }
   el.innerHTML = ideas.map((idea) => {
@@ -63,7 +63,7 @@ function cycleStateClass(ts) {
 function renderCycles(cycles) {
   const el = $('cyclesList');
   if (!el) return;
-  if (!cycles.length) { el.innerHTML = '<div class="empty">no cycles yet</div>'; return; }
+  if (!cycles.length) { el.innerHTML = '<div class="empty-state" data-empty-placeholder>No cycles yet.</div>'; return; }
   el.innerHTML = cycles.slice().reverse().map((c) => `
     <div class="idea-item">
       <div class="idea-head"><span class="idea-badge ${cycleStateClass(c.terminalState)}">${esc(c.terminalState || 'unknown')}</span></div>
@@ -244,7 +244,7 @@ function render(s) {
     }
     $('agents').innerHTML = s.agents.length
       ? buildOrgTree(s.agents)
-      : '<div class="empty">no agents spawned yet \u2014 start a cycle</div>';
+      : '<div class="empty-state" data-empty-placeholder>Council idle \u2014 no agents active.</div>';
     renderCouncil(s);
   }
 
@@ -257,7 +257,7 @@ function render(s) {
       if (!items.length && !['Todo', 'In Progress', 'In Review', 'Done'].includes(col)) return '';
       return `<div class="kcol">
       <div class="kcol-h">${col}<span>${items.length}</span></div>
-      ${items.length ? items.map((t) => `<div class="card ${col === 'Done' ? 'done' : ''}">${esc(t.subject)}<div class="card-sub">${esc(t.status)}</div></div>`).join('') : '<div class="kcol-empty">\u2014</div>'}
+      ${items.length ? items.map((t) => `<div class="card ${col === 'Done' ? 'done' : ''}">${esc(t.subject)}<div class="card-sub">${esc(t.status)}</div></div>`).join('') : `<div class="empty-state" data-empty-placeholder>${col}</div>`}
     </div>`;
     }).join('');
   }
@@ -284,10 +284,12 @@ function render(s) {
   const feedSig = JSON.stringify(s.events);
   if (feedSig !== lastSig.feed) {
     lastSig.feed = feedSig;
-    $('feed').innerHTML = s.events.map((e) => {
-      const kind = (e.type || '').split('.')[0];
-      return `<div class="ev ev-${esc(kind)}"><span class="ev-t">${esc(e.type)}</span><span class="ev-a">${esc(e.agent_id || '')}</span><span class="ev-ts">${esc((e.ts || '').slice(11, 19))}</span></div>`;
-    }).join('');
+    $('feed').innerHTML = s.events.length
+      ? s.events.map((e) => {
+          const kind = (e.type || '').split('.')[0];
+          return `<div class="ev ev-${esc(kind)}"><span class="ev-t">${esc(e.type)}</span><span class="ev-a">${esc(e.agent_id || '')}</span><span class="ev-ts">${esc((e.ts || '').slice(11, 19))}</span></div>`;
+        }).join('')
+      : '<div class="empty-state" data-empty-placeholder>No recent events.</div>';
   }
 
   // terminal console — agent output stream
@@ -312,17 +314,21 @@ function render(s) {
     if (el) {
       const linePattern = /^(\d{2}:\d{2}:\d{2}) (\[([^\]]+)\] )?(.*)$/;
       const raw_lines = s.console || [];
-      el.innerHTML = raw_lines.map((raw) => {
-        const m = linePattern.exec(raw);
-        if (m) {
-          const ts = esc(m[1]);
-          const agentId = m[3] ? esc(m[3]) : '';
-          const body = esc(m[4] || '');
-          const agentHtml = agentId ? `<span class="term-agent">[${agentId}]</span> ` : '';
-          return `<span class="term-line"><span class="term-ts">${ts}</span>${agentHtml}<span class="term-body">${body}</span></span>`;
-        }
-        return `<span class="term-line"><span class="term-body">${esc(raw)}</span></span>`;
-      }).join('');
+      if (!raw_lines.length) {
+        el.innerHTML = '<div class="empty-state" data-empty-placeholder>\u25BA Waiting for the next cycle \u2014 the CEO will propose a goal, or submit one from Ideas</div>';
+      } else {
+        el.innerHTML = raw_lines.map((raw) => {
+          const m = linePattern.exec(raw);
+          if (m) {
+            const ts = esc(m[1]);
+            const agentId = m[3] ? esc(m[3]) : '';
+            const body = esc(m[4] || '');
+            const agentHtml = agentId ? `<span class="term-agent">[${agentId}]</span> ` : '';
+            return `<span class="term-line"><span class="term-ts">${ts}</span>${agentHtml}<span class="term-body">${body}</span></span>`;
+          }
+          return `<span class="term-line"><span class="term-body">${esc(raw)}</span></span>`;
+        }).join('');
+      }
       el.scrollTop = el.scrollHeight;
     }
   }
@@ -434,7 +440,7 @@ function renderCouncil(snapshot) {
   const el = $('council-cards');
   if (!el) return;
   if (snapshot) lastCouncilSnap = snapshot;
-  if (!rosterLoaded) { el.innerHTML = '<div class="council-empty">loading roster\u2026</div>'; return; }
+  if (!rosterLoaded) { el.innerHTML = '<div class="empty-state" data-empty-placeholder>Loading council roster\u2026</div>'; return; }
 
   const agents = Array.isArray(lastCouncilSnap && lastCouncilSnap.agents) ? lastCouncilSnap.agents : [];
   const liveByRole = Object.create(null);
@@ -479,7 +485,7 @@ function renderCouncil(snapshot) {
     }).join('');
     html += `</div></div>`;
   }
-  el.innerHTML = html || '<div class="council-empty">roster unavailable</div>';
+  el.innerHTML = html || '<div class="empty-state" data-empty-placeholder>Council roster unavailable.</div>';
 }
 
 // ── Live stream ───────────────────────────────────────────────────
