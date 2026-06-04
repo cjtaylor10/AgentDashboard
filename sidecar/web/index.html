@@ -108,7 +108,7 @@
               <h2 class="panel-title">Live Output</h2>
               <span class="panel-sub">agent output stream</span>
             </header>
-            <div id="overview-console" class="terminal terminal--hero"></div>
+            <div id="overview-console" class="terminal terminal--hero"><div data-empty-placeholder class="empty-state">&#x25BA; Waiting for the next cycle &#x2014; the CEO will propose a goal, or submit one from Ideas</div></div>
           </section>
         </div>
         <div class="overview-sidebar">
@@ -117,14 +117,14 @@
               <h2 class="panel-title">Org</h2>
               <span id="agentsSub" class="panel-sub">who&#x27;s doing what now</span>
             </header>
-            <div id="agents" class="agents"></div>
+            <div id="agents" class="agents"><div data-empty-placeholder class="empty-state">Council idle &#x2014; no agents active.</div></div>
           </section>
           <section class="panel panel-feed">
             <header class="panel-hdr">
               <h2 class="panel-title">Activity</h2>
               <span class="panel-sub">event stream</span>
             </header>
-            <div id="feed" class="feed-list"></div>
+            <div id="feed" class="feed-list"><div data-empty-placeholder class="empty-state">No recent events.</div></div>
           </section>
         </div>
       </main>
@@ -158,7 +158,7 @@
             <h2 class="panel-title">Cycles</h2>
             <span class="panel-sub">history of council cycles</span>
           </header>
-          <div id="cyclesList" class="ideas-list"></div>
+          <div id="cyclesList" class="ideas-list"><div data-empty-placeholder class="empty-state">No cycles yet.</div></div>
         </section>
       </main>
     </section>
@@ -171,7 +171,7 @@
             <h2 class="panel-title">Council</h2>
             <span class="panel-sub">the full company &#x2014; every role, its config &amp; live status</span>
           </header>
-          <div id="council-cards"></div>
+          <div id="council-cards"><div data-empty-placeholder class="empty-state">Council idle &#x2014; no agents active.</div></div>
         </section>
       </main>
     </section>
@@ -210,7 +210,7 @@
               <button id="ideaSubmit" class="btn btn-primary">Submit Idea</button>
             </div>
           </div>
-          <div id="ideasList" class="ideas-list"></div>
+          <div id="ideasList" class="ideas-list"><div data-empty-placeholder class="empty-state">No ideas yet.</div></div>
         </section>
       </main>
     </section>
