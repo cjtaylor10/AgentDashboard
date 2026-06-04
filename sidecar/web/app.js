@@ -256,8 +256,8 @@ function render(s) {
       const items = s.tickets.filter((t) => t.kanban_column === col);
       if (!items.length && !['Todo', 'In Progress', 'In Review', 'Done'].includes(col)) return '';
       return `<div class="kcol">
-      <div class="kcol-h">${col}<span>${items.length}</span></div>
-      ${items.length ? items.map((t) => `<div class="card ${col === 'Done' ? 'done' : ''}">${esc(t.subject)}<div class="card-sub">${esc(t.status)}</div></div>`).join('') : `<div class="empty-state" data-empty-placeholder>${col}</div>`}
+      <div class="kcol-h">${esc(col)}<span>${items.length}</span></div>
+      ${items.length ? items.map((t) => `<div class="card ${col === 'Done' ? 'done' : ''}">${esc(t.subject)}<div class="card-sub">${esc(t.status)}</div></div>`).join('') : `<div class="empty-state" data-empty-placeholder>${esc(col)}</div>`}
     </div>`;
     }).join('');
   }
