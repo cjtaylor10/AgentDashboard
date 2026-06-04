@@ -115,7 +115,7 @@ function renderStepper(cycleState) {
   const cur = PHASES.indexOf(cycleState);
   el.querySelectorAll('.step[data-phase]').forEach((pill) => {
     const i = PHASES.indexOf(pill.dataset.phase);
-    const cls = cur < 0 ? 'step--pending' : i < cur ? 'step--done' : i === cur ? 'step--active' : 'step--pending';
+    const cls = cur < 0 ? 'step--upcoming' : i < cur ? 'step--done' : i === cur ? 'step--active' : 'step--upcoming';
     pill.className = `step ${cls}`;
   });
 }
@@ -152,7 +152,8 @@ function buildOrgTree(agents) {
     const indentStyle = depth > 0 ? ` style="margin-left:${depth * 18}px"` : '';
     const connector = depth > 0 ? '<span class="tree-branch">\u2570\u2500</span>' : '';
     const indTag = isIndependent ? '<span class="agent-tag-independent">INDEPENDENT</span>' : '';
-    let html = `<div class="agent"${indentStyle}>
+    const statusCls = a.status === 'working' ? ' agent--working' : ' agent--idle';
+    let html = `<div class="agent${statusCls}"${indentStyle}>
       ${connector}<span class="dot" style="color:${color};background:${color}"></span>
       <div class="agent-main">
         <div class="agent-role">${esc(a.role)}<span class="agent-id">${esc(a.id)}</span>${indTag}</div>
@@ -218,12 +219,17 @@ function render(s) {
     if (heroPhase) {
       const idle = !s.cycleState || s.cycleState === 'stop';
       const newText = idle ? '\u2014' : s.cycleState;
-      if (heroPhase.textContent !== newText) {
-        heroPhase.textContent = newText;
+      const textEl = heroPhase.querySelector('.hero-phase-text');
+      const liveDot = heroPhase.querySelector('.live-dot');
+      const curText = textEl ? textEl.textContent : heroPhase.textContent;
+      if (curText !== newText) {
+        if (textEl) textEl.textContent = newText;
+        else heroPhase.textContent = newText;
         heroPhase.classList.remove('hero-phase--changing');
         void heroPhase.offsetWidth;
         heroPhase.classList.add('hero-phase--changing');
       }
+      if (liveDot) liveDot.classList.toggle('live-dot--active', !idle);
     }
   }
 
@@ -233,7 +239,9 @@ function render(s) {
     lastSig.agents = agentsSig;
     const heroWorking = $('hero-working');
     if (heroWorking) {
-      heroWorking.textContent = String(s.agents.filter((a) => a.status === 'working').length);
+      const workingCount = s.agents.filter((a) => a.status === 'working').length;
+      heroWorking.textContent = String(workingCount);
+      heroWorking.classList.toggle('hero-working--active', workingCount > 0);
     }
     const sub = $('agentsSub');
     if (sub) {
@@ -283,13 +291,28 @@ function render(s) {
   // activity feed
   const feedSig = JSON.stringify(s.events);
   if (feedSig !== lastSig.feed) {
+    const prevCount = lastSig.feedCount || 0;
     lastSig.feed = feedSig;
-    $('feed').innerHTML = s.events.length
-      ? s.events.map((e) => {
-          const kind = (e.type || '').split('.')[0];
-          return `<div class="ev ev-${esc(kind)}"><span class="ev-t">${esc(e.type)}</span><span class="ev-a">${esc(e.agent_id || '')}</span><span class="ev-ts">${esc((e.ts || '').slice(11, 19))}</span></div>`;
-        }).join('')
-      : '<div class="empty-state" data-empty-placeholder>No recent events.</div>';
+    lastSig.feedCount = (s.events || []).length;
+    const feedEl = $('feed');
+    if (s.events.length) {
+      feedEl.innerHTML = s.events.map((e) => {
+        const kind = (e.type || '').split('.')[0];
+        return `<div class="ev ev-${esc(kind)}"><span class="ev-t">${esc(e.type)}</span><span class="ev-a">${esc(e.agent_id || '')}</span><span class="ev-ts">${esc((e.ts || '').slice(11, 19))}</span></div>`;
+      }).join('');
+      // Apply entrance animation to genuinely new items (added since last render)
+      const newCount = s.events.length - prevCount;
+      if (newCount > 0) {
+        const items = feedEl.querySelectorAll('.ev');
+        for (let i = Math.max(0, items.length - newCount); i < items.length; i++) {
+          const item = items[i];
+          item.classList.add('feed-item--new');
+          item.addEventListener('animationend', () => item.classList.remove('feed-item--new'), { once: true });
+        }
+      }
+    } else {
+      feedEl.innerHTML = '<div class="empty-state" data-empty-placeholder>No recent events.</div>';
+    }
   }
 
   // terminal console — agent output stream

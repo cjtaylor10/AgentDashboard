@@ -314,7 +314,6 @@ body {
 .conn-dot.on {
   background: var(--green);
   box-shadow: 0 0 0 0 rgba(63,185,80,.5);
-  animation: conn-pulse 2.5s ease infinite;
 }
 @keyframes conn-pulse {
   0%   { box-shadow: 0 0 0 0   rgba(63,185,80,.5); }
@@ -538,7 +537,6 @@ body { padding-left: var(--nav-w); }
   font-size: 11px;
   text-align: center;
   padding: var(--sp-4) var(--sp-3);
-  animation: empty-state-appear 500ms var(--ease) both;
 }
 
 /* ── Agents ──────────────────────────────────────────────────────── */
@@ -893,6 +891,7 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   color: var(--green);
   letter-spacing: -.5px;
   line-height: 1;
+  transition: text-shadow 200ms ease;
 }
 
 .hero-divider {
@@ -935,7 +934,7 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   border: 1px solid var(--border-subtle);
   background: transparent;
   color: var(--text-faint);
-  transition: background 150ms var(--ease), color 150ms var(--ease), box-shadow 150ms var(--ease);
+  transition: background 300ms ease, color 300ms ease, border-color 300ms ease, box-shadow 300ms ease, opacity 300ms ease;
   white-space: nowrap;
 }
 
@@ -1400,29 +1399,101 @@ body.paused { box-shadow: inset 0 0 0 2px rgba(244,112,103,.20); }
   word-break: break-word;
 }
 
-/* ── Overview animations ──────────────────────────────────────────── */
-@keyframes phase-enter {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* ── Step upcoming ───────────────────────────────────────────────────── */
+.step--upcoming .step-pill {
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-faint);
+  opacity: 0.35;
 }
 
-.hero-phase--changing {
-  animation: phase-enter 200ms var(--ease) both;
+/* ── Live dot (visible only when cycle is running) ───────────────────── */
+.live-dot {
+  display: none;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--primary);
+  vertical-align: middle;
+  margin-left: 7px;
+  flex-shrink: 0;
+}
+.live-dot--active { display: inline-block; }
+
+/* ── Hero working active glow ────────────────────────────────────────── */
+.hero-working--active { text-shadow: 0 0 18px rgba(63,185,80,.55); }
+
+/* ── Agent working / idle ────────────────────────────────────────────── */
+.agent--working {
+  border-color: rgba(70,130,180,.45) !important;
+  box-shadow: 0 0 0 1px rgba(70,130,180,.18), 0 0 10px rgba(70,130,180,.12);
+  opacity: 1;
+  transition: border-color 200ms var(--ease), box-shadow 200ms var(--ease), opacity 200ms var(--ease);
+}
+.agent--idle {
+  opacity: 0.6;
+  transition: opacity 200ms var(--ease);
 }
 
-@keyframes term-line-appear {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
+/* ── Feed item entrance (base; animation applied in no-preference query) */
+.feed-item--new { will-change: opacity, transform; }
 
-.terminal--hero .term-line:nth-last-child(1) {
-  animation: term-line-appear 200ms var(--ease) both;
-}
-.terminal--hero .term-line:nth-last-child(2) {
-  animation: term-line-appear 200ms var(--ease) both;
-  animation-delay: 25ms;
-}
-.terminal--hero .term-line:nth-last-child(3) {
-  animation: term-line-appear 200ms var(--ease) both;
-  animation-delay: 50ms;
+/* ═══════════════════════════════════════════════════════════════════════
+   All keyframe animations — gated by prefers-reduced-motion: no-preference
+   so they are automatically disabled when the OS reduces-motion flag is set.
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: no-preference) {
+  /* connection dot pulse */
+  .conn-dot.on { animation: conn-pulse 2.5s ease infinite; }
+
+  /* empty-state fade-in */
+  @keyframes empty-state-appear {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .empty-state { animation: empty-state-appear 500ms var(--ease) both; }
+
+  /* hero phase enter */
+  @keyframes phase-enter {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hero-phase--changing { animation: phase-enter 200ms var(--ease) both; }
+
+  /* terminal newest lines appear */
+  @keyframes term-line-appear {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .terminal--hero .term-line:nth-last-child(1) { animation: term-line-appear 200ms var(--ease) both; }
+  .terminal--hero .term-line:nth-last-child(2) { animation: term-line-appear 200ms var(--ease) both; animation-delay: 25ms; }
+  .terminal--hero .term-line:nth-last-child(3) { animation: term-line-appear 200ms var(--ease) both; animation-delay: 50ms; }
+
+  /* step active pulse — 2 s infinite ease-in-out */
+  @keyframes step-active-pulse {
+    0%, 100% { opacity: 1;    box-shadow: 0 0 8px  var(--primary-muted); }
+    50%       { opacity: 0.82; box-shadow: 0 0 18px rgba(70,130,180,.60); }
+  }
+  .step--active .step-pill { animation: step-active-pulse 2s ease-in-out infinite; }
+
+  /* live dot liveness pulse — same period */
+  @keyframes liveness-pulse {
+    0%, 100% { opacity: 1;   }
+    50%       { opacity: 0.4; }
+  }
+  .live-dot--active { animation: liveness-pulse 2s ease-in-out infinite; }
+
+  /* agent working opacity pulse */
+  @keyframes agent-working-pulse {
+    0%, 100% { opacity: 1;    }
+    50%       { opacity: 0.72; }
+  }
+  .agent--working { animation: agent-working-pulse 2s ease-in-out infinite; }
+
+  /* feed item entrance */
+  @keyframes feed-item-enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0);   }
+  }
+  .feed-item--new { animation: feed-item-enter 350ms ease-out both; }
 }
