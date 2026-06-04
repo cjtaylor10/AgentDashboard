@@ -3,7 +3,7 @@
    Primary: #4682b4 (steel blue)
    =================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700&display=swap');
+/* Fonts: local/system stacks only (see --font-mono) — no external font fetch, for offline use + privacy. */
 
 :root {
   /* ── Primary: steel blue ── */
