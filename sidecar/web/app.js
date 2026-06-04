@@ -54,15 +54,21 @@ function renderIdeas(ideas) {
 }
 
 // ── Cycles (fetched on demand from /api/cycles) ───────────────────
+function cycleStateClass(ts) {
+  if (ts === 'stop')  return 'idea-state-done';
+  if (ts === 'error') return 'idea-state-rejected';
+  return 'idea-state-new';
+}
+
 function renderCycles(cycles) {
   const el = $('cyclesList');
   if (!el) return;
   if (!cycles.length) { el.innerHTML = '<div class="empty">no cycles yet</div>'; return; }
   el.innerHTML = cycles.slice().reverse().map((c) => `
     <div class="idea-item">
-      <div class="idea-head"><span class="idea-badge">${esc(c.terminalState || 'unknown')}</span></div>
-      <div class="idea-text">#${esc(String(c.cycleId))} · ${esc(c.goal || '(no goal)')}</div>
-      <div class="idea-note">${esc(String(c.durationSecs))}s · ${esc((c.startedAt || '').slice(0, 19).replace('T', ' '))}</div>
+      <div class="idea-head"><span class="idea-badge ${cycleStateClass(c.terminalState)}">${esc(c.terminalState || 'unknown')}</span></div>
+      <div class="idea-text">#<span class="mono">${esc(String(c.cycleId))}</span> · ${esc(c.goal || '(no goal)')}</div>
+      <div class="cycle-item-meta"><span class="mono">${esc(String(c.durationSecs ?? 0))}s</span> · <span class="mono">${esc((c.startedAt || '').slice(0, 19).replace('T', ' '))}</span></div>
     </div>`).join('');
 }
 async function fetchCycles() {
